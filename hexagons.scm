@@ -21,7 +21,7 @@
 (current-exception-handler
  (let ((original-handler (current-exception-handler)))
    (lambda (exception)
-     (sdl2:quit!)
+     ;(sdl2:quit!)
      (original-handler exception))))
 
 ;; scene
@@ -47,6 +47,18 @@
     (2 2)
     (4 1)
     (5 3)))
+
+;; grip
+
+(define-record-type grip
+  (make-grip x y dx dy)
+  grip?
+  (x grip-x (setter grip-x))
+  (y grip-y (setter grip-y))
+  (dx grip-dx (setter grip-dx))
+  (dy grip-dy (setter grip-dy)))
+
+(define *grip* (make-grip 0 0 0 0))
 
 ;; math
 
@@ -99,7 +111,8 @@
          (r (cadr coord))
          (x (* scale (+ (* (sqrt 3) q) (* (/ (sqrt 3) 2) r))))
          (y (* scale (/ 3 2) r)))
-    (P (round x) (round y))))
+    (P (+ (grip-dx *grip*) (round x))
+       (+ (grip-dy *grip*) (round y)))))
 
 (define (render-hex-coord! renderer coord scale)
   (let* ((point (coord->pixel coord scale))
@@ -119,10 +132,42 @@
      (render-hex-coord! renderer coord 50))
    hexes))
 
+;; event handling
+
+(define (handle-event! ev)
+  (case (sdl2:event-type ev)
+    ((mouse-button-down)
+     (case (sdl2:mouse-button-event-button ev)
+       ((middle)
+        (set! (grip-x *grip*) (sdl2:mouse-button-event-x ev))
+        (set! (grip-y *grip*) (sdl2:mouse-button-event-y ev)))))
+    ((mouse-motion)
+     (match (sdl2:mouse-motion-event-state ev)
+       ('(middle)
+        (set! (grip-dx *grip*) (+ (grip-dx *grip*)
+                                  (- (grip-x *grip*)
+                                     (sdl2:mouse-motion-event-x ev))))
+        (set! (grip-dy *grip*) (+ (grip-dy *grip*)
+                                  (- (grip-y *grip*)
+                                     (sdl2:mouse-motion-event-y ev))))
+        (set! (grip-x *grip*) (sdl2:mouse-motion-event-x ev))
+        (set! (grip-y *grip*) (sdl2:mouse-motion-event-y ev)))
+       (x #f)))))
+
+(define (handle-events!)
+  (cond
+   ((sdl2:has-events?)
+    (begin
+      (handle-event! (sdl2:poll-event!))
+      (handle-events!)))))
+
 ;; event loop
 
 (define (event-loop)
   (let loop ()
+    (sdl2:pump-events!)
+    (handle-events!)
+
     (render-scene! *renderer*)
 
     (sdl2:render-present! *renderer*)
@@ -130,7 +175,9 @@
     (thread-yield!)
     (loop)))
 
-(define *event-loop-thread* (make-parameter void))
+(define *event-loop-thread* (make-parameter #f))
 
 (begin
+  (cond
+   ((not (eq? (*event-loop-thread*) #f)) (thread-terminate! (*event-loop-thread*))))
   (*event-loop-thread* (thread-start! event-loop)))
