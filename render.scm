@@ -2,8 +2,8 @@
 
 ;; render
 
-(define (render-coord-text! renderer cx cy coord color)
-  (let* ((s (string-join (map number->string coord) ","))
+(define (render-cube-text! renderer cx cy cube color)
+  (let* ((s (string-join (map number->string (take cube 2)) ","))
          (surface (ttf:render-text-solid *font* s color))
          (texture (sdl2:create-texture-from-surface *renderer* surface))
          (w (sdl2:surface-w surface))
@@ -20,26 +20,26 @@
     (set! (sdl2:render-draw-color renderer) color)
     (sdl2:render-draw-lines! renderer points)))
 
-(define (render-hex-coord! renderer scale coord color filled?)
-  (let* ((point (coord->pixel *grip* coord))
+(define (render-hex-cube! renderer scale cube color filled?)
+  (let* ((point (cube->pixel *grip* cube))
          (cx (sdl2:point-x point))
          (cy (sdl2:point-y point)))
     (render-hex! renderer cx cy scale color filled?)
-    (render-coord-text! renderer cx cy coord color)))
+    (render-cube-text! renderer cx cy cube color)))
 
 (define (select-color base-color selected?)
   (let ((grey (if selected? +lightgrey+ +darkgrey+)))
     (sdl2:color-mult grey base-color)))
 
 (define (render-tile! renderer scale selected? filled? tile)
-  (let* ((coord (tile-coord tile))
+  (let* ((cube (tile-cube tile))
          (base-color (tile-color tile))
          (color (select-color base-color selected?)))
-    (render-hex-coord! renderer scale coord color filled?)))
+    (render-hex-cube! renderer scale cube color filled?)))
 
 (define (render-tiles! renderer scale)
   (let-values (((bg fg) (partition (lambda (tile)
-                                     (not (equal? (tile-coord tile)
+                                     (not (equal? (tile-cube tile)
                                                   (selector-hover-tile *selector*))))
                                    +tiles+)))
     (for-each
@@ -52,9 +52,9 @@
 (define (render-path! renderer scale)
   (let ((a (selector-hover-tile *selector*))
         (b (selector-focus-tile *selector*)))
-    (when (not (equal? (cube->coord a) (cube->coord b)))
+    (when (not (equal? a b))
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
-      (sdl2:render-draw-lines! renderer (map (lambda (c) (coord->pixel *grip* c)) (coord-line a b))))))
+      (sdl2:render-draw-lines! renderer (map (lambda (c) (cube->pixel *grip* c)) (cube-line a b))))))
 
 (define (render-scene! renderer)
   (set! (sdl2:render-draw-color *renderer*) +black+)

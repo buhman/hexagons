@@ -3,8 +3,7 @@
      srfi-18
      srfi-8
      matchable
-     section-combinators
-     numbers)
+     section-combinators)
 
 ;; aliases
 
@@ -49,11 +48,11 @@
 
 ;; tiles/scene
 
-(define (TP coord)
-  (make-tile coord +white+ #t))
+(define (TP axial)
+  (make-tile (axial->cube axial) +white+ #t))
 
-(define (TU coord)
-  (make-tile coord +blue+ #f))
+(define (TU axial)
+  (make-tile (axial->cube axial) +blue+ #f))
 
 (define +tiles+
   (append
@@ -80,7 +79,7 @@
 
 ;; selector
 
-(define *selector* (make-selector '(0 0) '(0 0)))
+(define *selector* (make-selector '(0 0 0) '(0 0 0)))
 
 ;; window / renderer
 

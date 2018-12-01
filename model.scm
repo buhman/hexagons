@@ -1,9 +1,11 @@
+(use numbers)
+
 ;; tile
 
 (define-record-type tile
-  (make-tile coord color pathable)
+  (make-tile cube color pathable)
   tile?
-  (coord tile-coord)
+  (cube tile-cube)
   (color tile-color)
   (pathable tile-pathable?))
 
@@ -28,74 +30,66 @@
 
 ;; qr(s) axial coordinate system
 
-(define (coord->pixel grip coord)
+(define cube-q car)
+(define cube-r cadr)
+(define cube-s caddr)
+
+(define +axes+ (list cube-q cube-r cube-s))
+
+(define (axis-sub x y)
+  (- (- x) y))
+
+(define (cube->pixel grip cube)
   (let* ((scale (grip-scale grip))
-         (q (car coord))
-         (r (cadr coord))
+         (q (cube-q cube))
+         (r (cube-r cube))
          (x (* scale (+ (* (sqrt 3) q) (* (/ (sqrt 3) 2) r))))
          (y (* scale (/ 3 2) r)))
     (P (+ (grip-dx grip) (round x))
        (+ (grip-dy grip) (round y)))))
 
-(define (pixel->coord grip point)
+(define (pixel->cube grip point)
   (let* ((scale (grip-scale grip))
          (x (- (sdl2:point-x point) (grip-dx grip)))
          (y (- (sdl2:point-y point) (grip-dy grip)))
          (q (/ (- (* (/ (sqrt 3) 3) x) (* (/ 1 3) y)) scale))
-         (r (/ (* (/ 2 3) y)  scale)))
-    (list q r)))
-
-(define coord-q car)
-(define coord-r cadr)
-(define coord-s caddr)
-
-(define +axes+ (list coord-q coord-r coord-s))
-
-(define (coord->cube coord)
-  (let* ((q (coord-q coord))
-         (r (coord-r coord))
-         (s (- (- q) r)))
+         (r (/ (* (/ 2 3) y)  scale))
+         (s (axis-sub q r)))
     (list q r s)))
 
-(define (cube->coord cube)
-  (take cube 2))
+(define (axial->cube axial)
+  (let* ((q (cube-q axial))
+         (r (cube-r axial))
+         (s (axis-sub q r)))
+    (list q r s)))
 
-(define (coord-distance a b)
-  (let ((cube-a (coord->cube a))
-        (cube-b (coord->cube b)))
-    (apply max (map (lambda (axis) (abs (- (axis cube-a) (axis cube-b))))
-                    +axes+))))
+(define (cube-distance a b)
+  (apply max (map (lambda (axis) (abs (- (axis a) (axis b))))
+                  +axes+)))
 
 (define (lerp a b t)
   (+ a (* t (- b a))))
 
-(define (coord-lerp a b t)
-  (let ((cube-a (coord->cube a))
-        (cube-b (coord->cube b)))
-    (map (lambda (axis) (lerp (axis cube-a) (axis cube-b) t))
-         +axes+)))
+(define (cube-lerp a b t)
+  (map (lambda (axis) (lerp (axis a) (axis b) t))
+       +axes+))
 
-(define (reset-axis delta)
-  (if (and (> (coord-q delta) (coord-r delta))
-           (> (coord-q delta) (coord-s delta)))
-    coord-q
-    (if (> (coord-r delta) (coord-s delta))
-      coord-r
-      coord-s)))
+(define (cube-nearest cube)
+  (let* ((relt (map (compose exact round) cube))
+         (delt (map (lambda (r c) (abs (- r c))) relt cube))
+         (q (cube-q relt))
+         (r (cube-r relt))
+         (s (cube-s relt)))
+    (if (< q r)
+      (if (< r s)
+        (list q r (axis-sub q r))
+        (list q (axis-sub q s) s))
+      (if (< q s)
+        (list q r (axis-sub q r))
+        (list (axis-sub r s) r s)))))
 
-;; I can't say I've ever written worse code
-(define (coord-nearest coord)
-  (let* ((cube (coord->cube coord))
-         (round-cube (map (compose exact round) cube))
-         (delta (map (lambda (x rx) (abs (- rx x))) cube round-cube))
-         (fix-axis (reset-axis delta))
-         (other-axes (filter (lambda (i) (not (eq? fix-axis i))) +axes+)))
-    (set! (fix-axis round-cube)
-          (apply (lambda (ax bx) (- (- (ax round-cube)) (bx round-cube))) other-axes))
-    round-cube))
-
-(define (coord-line a b)
-  (let ((dc (coord-distance a b)))
+(define (cube-line a b)
+  (let ((dc (cube-distance a b)))
     (map
-     (lambda (i) (coord-nearest (coord-lerp a b (* (/ 1 dc) i))))
+     (lambda (i) (cube-nearest (cube-lerp a b (* (/ 1 dc) i))))
      (iota (+ 1 dc) 0))))
