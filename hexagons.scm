@@ -29,39 +29,62 @@
 ;; scene
 
 (define +screen-width+ 800)
-(define +screen-height+ 400)
+(define +screen-height+ 800)
 
 (define +title+ "hexagons")
 
 (define +black+ (C 0 0 0))
 (define +white+ (C 255 255 255))
-(define +darkgrey+ (C 68 68 68))
-(define +lightgrey+ (C 153 153 153))
+(define +darkgrey+ (C 98 98 98))
+(define +lightgrey+ (C 183 183 183))
+(define +blue+ (C 34 0 255))
 
-(define +hexes+
-  '(
-    ; q r
-    (1 0)
-    (0 1)
-    (1 1)
-    (2 0)
-    (2 1)
-    (0 2)
-    (2 2)
-    (4 1)
-    (5 3)))
+;; tiles
+
+(define-record-type tile
+  (make-tile coord color pathable)
+  tile?
+  (coord tile-coord)
+  (color tile-color)
+  (pathable tile-pathable?))
+
+(define (TP coord)
+  (make-tile coord +white+ #t))
+
+(define (TU coord)
+  (make-tile coord +blue+ #f))
+
+(define +tiles+
+  (append
+   (map TP '((0 0)
+             (1 0)
+             (0 1)
+             (1 2)
+             (2 0)
+             (0 2)
+             (4 1)
+             (3 1)
+             (3 0)
+             (5 3)
+             (1 3)
+             (2 3)
+             (3 2)))
+   (map TU '((1 1)
+             (2 1)
+             (2 2)))))
 
 ;; grip
 
 (define-record-type grip
-  (make-grip x y dx dy)
+  (make-grip x y dx dy scale)
   grip?
   (x grip-x (setter grip-x))
   (y grip-y (setter grip-y))
   (dx grip-dx (setter grip-dx))
-  (dy grip-dy (setter grip-dy)))
+  (dy grip-dy (setter grip-dy))
+  (scale grip-scale (setter grip-scale)))
 
-(define *grip* (make-grip 0 0 0 0))
+(define *grip* (make-grip 0 0 0 0 60))
 
 ;; math
 
@@ -128,7 +151,7 @@
          (r (/ (* (/ 2 3) y)  scale)))
     (list q r)))
 
-(define (render-hex-coord! renderer coord scale color)
+(define (render-hex-coord! renderer scale coord color)
   (let* ((point (coord->pixel coord scale))
          (cx (sdl2:point-x point))
          (cy (sdl2:point-y point)))
@@ -136,21 +159,32 @@
     (render-hex! renderer cx cy scale)
     (render-coord-text! renderer cx cy coord color)))
 
-(define (render-hexes! renderer scale)
-  (let-values (((bg fg)
-                (partition (lambda (hex) (not (equal? hex *hover-coord*))) +hexes+)))
+(define (select-color base-color selected?)
+  (let ((grey (if selected? +lightgrey+ +darkgrey+)))
+    (sdl2:color-mult grey base-color)))
+
+(define (render-tile! renderer scale selected? tile)
+  (let* ((coord (tile-coord tile))
+         (base-color (tile-color tile))
+         (color (select-color base-color selected?)))
+    (render-hex-coord! renderer scale coord color)))
+
+(define (render-tiles! renderer scale)
+  (let-values (((bg fg) (partition (lambda (tile)
+                                     (not (equal? (tile-coord tile) *hover-coord*)))
+                                   +tiles+)))
     (for-each
-     (lambda (hex) (render-hex-coord! renderer hex scale +darkgrey+))
+     (lambda (tile) (render-tile! renderer scale #f tile))
      bg)
     (for-each
-     (lambda (hex) (render-hex-coord! renderer hex scale +lightgrey+))
+     (lambda (tile) (render-tile! renderer scale #t tile))
      fg)))
 
 (define (render-scene! renderer)
   (set! (sdl2:render-draw-color *renderer*) +black+)
   (sdl2:render-clear! *renderer*)
 
-  (render-hexes! renderer 50))
+  (render-tiles! renderer (grip-scale *grip*)))
 
 ;; event handling
 
@@ -174,10 +208,16 @@
         (set! (grip-y *grip*) (sdl2:mouse-motion-event-y ev)))
        ('()
         (let* ((point (P (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
-               (coord (pixel->coord point 50))
+               (coord (pixel->coord point (grip-scale *grip*)))
                (rcoord (map (compose exact round) coord)))
           (set! *hover-coord* rcoord)))
-       (x #f)))))
+       (x #f)))
+    ((mouse-wheel)
+     (let ((new-scale (+ (grip-scale *grip*)
+                         (* 30 (sdl2:mouse-wheel-event-y ev)))))
+       (if (< new-scale 30)
+         #f
+         (set! (grip-scale *grip*) new-scale))))))
 
 (define (handle-events!)
   (cond
@@ -203,6 +243,14 @@
 (define *event-loop-thread* (make-parameter #f))
 
 (begin
-  (cond
-   ((not (eq? (*event-loop-thread*) #f)) (thread-terminate! (*event-loop-thread*))))
+  (when (not (eq? (*event-loop-thread*) #f))
+    (thread-terminate! (*event-loop-thread*)))
   (*event-loop-thread* (thread-start! event-loop)))
+
+;; restart a terminated event loop
+(when (eq? 'terminated (thread-state (*event-loop-thread*)))
+  (*event-loop-thread* (thread-start! event-loop)))
+
+(cond-expand
+ (compiling (thread-join! (*event-loop-thread*)))
+ (else))
