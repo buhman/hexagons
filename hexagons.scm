@@ -26,6 +26,10 @@
      ;(sdl2:quit!)
      (original-handler exception))))
 
+;; includes
+
+(include "model.scm")
+
 ;; scene
 
 (define +screen-width+ 800)
@@ -40,13 +44,6 @@
 (define +blue+ (C 34 0 255))
 
 ;; tiles
-
-(define-record-type tile
-  (make-tile coord color pathable)
-  tile?
-  (coord tile-coord)
-  (color tile-color)
-  (pathable tile-pathable?))
 
 (define (TP coord)
   (make-tile coord +white+ #t))
@@ -74,15 +71,6 @@
              (2 2)))))
 
 ;; grip
-
-(define-record-type grip
-  (make-grip x y dx dy scale)
-  grip?
-  (x grip-x (setter grip-x))
-  (y grip-y (setter grip-y))
-  (dx grip-dx (setter grip-dx))
-  (dy grip-dy (setter grip-dy))
-  (scale grip-scale (setter grip-scale)))
 
 (define *grip* (make-grip 0 0 0 0 60))
 
@@ -136,23 +124,8 @@
 (define (render-hex! renderer cx cy radius)
   (sdl2:render-draw-lines! renderer (hex-points cx cy radius)))
 
-(define (coord->pixel coord scale)
-  (let* ((q (car coord))
-         (r (cadr coord))
-         (x (* scale (+ (* (sqrt 3) q) (* (/ (sqrt 3) 2) r))))
-         (y (* scale (/ 3 2) r)))
-    (P (+ (grip-dx *grip*) (round x))
-       (+ (grip-dy *grip*) (round y)))))
-
-(define (pixel->coord point scale)
-  (let* ((x (- (sdl2:point-x point) (grip-dx *grip*)))
-         (y (- (sdl2:point-y point) (grip-dy *grip*)))
-         (q (/ (- (* (/ (sqrt 3) 3) x) (* (/ 1 3) y)) scale))
-         (r (/ (* (/ 2 3) y)  scale)))
-    (list q r)))
-
 (define (render-hex-coord! renderer scale coord color)
-  (let* ((point (coord->pixel coord scale))
+  (let* ((point (coord->pixel *grip* coord))
          (cx (sdl2:point-x point))
          (cy (sdl2:point-y point)))
     (set! (sdl2:render-draw-color renderer) color)
@@ -208,7 +181,7 @@
         (set! (grip-y *grip*) (sdl2:mouse-motion-event-y ev)))
        ('()
         (let* ((point (P (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
-               (coord (pixel->coord point (grip-scale *grip*)))
+               (coord (pixel->coord *grip* point))
                (rcoord (map (compose exact round) coord)))
           (set! *hover-coord* rcoord)))
        (x #f)))
