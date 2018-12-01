@@ -41,6 +41,8 @@
 (define coord-r cadr)
 (define coord-s caddr)
 
+(define +axes+ (list coord-q coord-r coord-s))
+
 (define (coord->cube coord)
   (let* ((q (coord-q coord))
          (r (coord-r coord))
@@ -50,10 +52,26 @@
 (define (cube->coord cube)
   (take cube 2))
 
-(define (distance a b)
-  (let* ((cube-a (coord->cube a))
-         (cube-b (coord->cube b))
-         (dq (abs (- (coord-q cube-a) (coord-q cube-b))))
-         (dr (abs (- (coord-r cube-a) (coord-r cube-b))))
-         (ds (abs (- (coord-s cube-a) (coord-s cube-b)))))
-    (max dq dr ds)))
+(define (coord-distance a b)
+  (let ((cube-a (coord->cube a))
+        (cube-b (coord->cube b)))
+    (apply max (map (lambda (axis) (abs (- (axis cube-a) (axis cube-b))))
+                    +axes+))))
+
+(define (lerp a b t)
+  (+ a (* t (- b a))))
+
+(define (coord-lerp a b t)
+  (let ((cube-a (coord->cube a))
+        (cube-b (coord->cube b)))
+    (map (lambda (axis) (lerp (axis cube-a) (axis cube-b) t))
+         +axes+)))
+
+(define (coord-nearest coord)
+  (map (compose exact round) coord))
+
+(define (coord-line a b)
+  (let ((dc (coord-distance a b)))
+    (map
+     (lambda (i) (coord-nearest (coord-lerp a b (* (/ 1 dc) i))))
+     (iota (+ 1 dc) 0))))
