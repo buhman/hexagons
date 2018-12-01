@@ -18,6 +18,14 @@
   (dy grip-dy (setter grip-dy))
   (scale grip-scale (setter grip-scale)))
 
+;;
+
+(define-record-type selector
+  (make-selector hover-tile focus-tile)
+  selector?
+  (hover-tile selector-hover-tile (setter selector-hover-tile))
+  (focus-tile selector-focus-tile (setter selector-focus-tile)))
+
 ;; qr(s) axial coordinate system
 
 (define (coord->pixel grip coord)
@@ -67,8 +75,24 @@
     (map (lambda (axis) (lerp (axis cube-a) (axis cube-b) t))
          +axes+)))
 
+(define (reset-axis delta)
+  (if (and (> (coord-q delta) (coord-r delta))
+           (> (coord-q delta) (coord-s delta)))
+    coord-q
+    (if (> (coord-r delta) (coord-s delta))
+      coord-r
+      coord-s)))
+
+;; I can't say I've ever written worse code
 (define (coord-nearest coord)
-  (map (compose exact round) coord))
+  (let* ((cube (coord->cube coord))
+         (round-cube (map (compose exact round) cube))
+         (delta (map (lambda (x rx) (abs (- rx x))) cube round-cube))
+         (fix-axis (reset-axis delta))
+         (other-axes (filter (lambda (i) (not (eq? fix-axis i))) +axes+)))
+    (set! (fix-axis round-cube)
+          (apply (lambda (ax bx) (- (- (ax round-cube)) (bx round-cube))) other-axes))
+    round-cube))
 
 (define (coord-line a b)
   (let ((dc (coord-distance a b)))
