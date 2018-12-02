@@ -1,7 +1,11 @@
 ;; event handling
 
-(define (handle-event! ev)
+(define (handle-event! ev exit-loop!)
   (case (sdl2:event-type ev)
+    ((quit)
+     (print "quit")
+     (exit-loop! #t))
+
     ((mouse-button-down)
      (case (sdl2:mouse-button-event-button ev)
        ((middle)
@@ -11,6 +15,7 @@
         (let* ((point (P (sdl2:mouse-button-event-x ev) (sdl2:mouse-button-event-y ev)))
                (cube (pixel->cube *grip* point)))
           (set! (selector-focus-tile *selector*) (cube-nearest cube))))))
+
     ((mouse-motion)
      (match (sdl2:mouse-motion-event-state ev)
        ('(middle)
@@ -27,6 +32,7 @@
                (cube (pixel->cube *grip* point)))
           (set! (selector-hover-tile *selector*) (cube-nearest cube))))
        (x #f)))
+
     ((mouse-wheel)
      (let ((new-scale (+ (grip-scale *grip*)
                          (* 30 (sdl2:mouse-wheel-event-y ev)))))
@@ -34,9 +40,9 @@
          #f
          (set! (grip-scale *grip*) new-scale))))))
 
-(define (handle-events!)
+(define (handle-events! exit-loop!)
   (cond
    ((sdl2:has-events?)
     (begin
-      (handle-event! (sdl2:poll-event!))
-      (handle-events!)))))
+      (handle-event! (sdl2:poll-event!) exit-loop!)
+      (handle-events! exit-loop!)))))

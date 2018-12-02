@@ -1,7 +1,8 @@
 (use (prefix sdl2 sdl2:)
      (prefix sdl2-ttf ttf:)
-     srfi-18
      srfi-8
+     srfi-13
+     srfi-18
      matchable
      section-combinators)
 
@@ -80,7 +81,9 @@
              (1 4)
              (-1 4)
              (2 1)
-             (4 0)))
+             (4 0)
+             (-1 5)
+             (-2 5)))
    (map TU '((0 2)
              (1 1)
              (2 2)
@@ -116,16 +119,18 @@
 ;; event loop
 
 (define (event-loop)
-  (let loop ()
-    (sdl2:pump-events!)
-    (handle-events!)
+  (call/cc
+   (lambda (exit-loop!)
+     (let loop ()
+       (sdl2:pump-events!)
+       (handle-events! exit-loop!)
 
-    (render-scene! *renderer*)
+       (render-scene! *renderer*)
 
-    (sdl2:render-present! *renderer*)
-    (sdl2:delay! 20)
-    (thread-yield!)
-    (loop)))
+       (sdl2:render-present! *renderer*)
+       (sdl2:delay! 20)
+       (thread-yield!)
+       (loop)))))
 
 ;; background thread
 
