@@ -30,6 +30,7 @@
 (include "model.scm")
 (include "render.scm")
 (include "events.scm")
+(include "path.scm")
 
 ;; constants
 
@@ -46,6 +47,7 @@
 (define +blue+ (C 34 0 255))
 (define +purple+ (C 255 0 255))
 (define +yellow+ (C 255 255 0))
+(define +green+ (C 0 255 0))
 
 ;; tiles/scene
 

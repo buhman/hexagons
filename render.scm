@@ -49,12 +49,23 @@
      (lambda (tile) (render-tile! renderer scale #t #f tile))
      fg)))
 
-(define (render-path! renderer scale)
+(define (render-linear-path! renderer scale)
   (let ((a (selector-hover-tile *selector*))
         (b (selector-focus-tile *selector*)))
     (when (not (equal? a b))
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
       (sdl2:render-draw-lines! renderer (map (lambda (c) (cube->pixel *grip* c)) (cube-line a b))))))
+
+(define (render-flood-path! renderer scale)
+  (let* ((a (selector-hover-tile *selector*))
+         (b (selector-focus-tile *selector*)))
+    (when (not (equal? a b))
+      (let* ((node-graph (flood-search b +tiles+ cube-neighbors))
+             (node-path (flood-path b a node-graph)))
+        (when node-path
+          (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
+          (sdl2:render-draw-lines! renderer
+                                   (map (lambda (c) (cube->pixel *grip* c)) node-path)))))))
 
 (define (render-neighbors! renderer scale)
   (let* ((cube (selector-hover-tile *selector*))
@@ -71,4 +82,5 @@
 
   (render-tiles! renderer (grip-scale *grip*))
   (render-neighbors! renderer (grip-scale *grip*))
-  (render-path! renderer (grip-scale *grip*)))
+  (render-linear-path! renderer (grip-scale *grip*))
+  (render-flood-path! renderer (grip-scale *grip*)))
