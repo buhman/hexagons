@@ -41,7 +41,7 @@
   (let-values (((bg fg) (partition (lambda (tile)
                                      (not (equal? (tile-cube tile)
                                                   (selector-hover-tile *selector*))))
-                                   +tiles+)))
+                                   (map cdr +tiles+))))
     (for-each
      (lambda (tile) (render-tile! renderer scale #f #f tile))
      bg)

@@ -48,11 +48,17 @@
 
 ;; tiles/scene
 
+(define (tile-alist axial color pathable)
+  (let ((cube (axial->cube axial)))
+    (cons
+     cube
+     (make-tile cube color #f))))
+
 (define (TP axial)
-  (make-tile (axial->cube axial) +white+ #t))
+  (tile-alist axial +white+ #f))
 
 (define (TU axial)
-  (make-tile (axial->cube axial) +blue+ #f))
+  (tile-alist axial +blue+ #f))
 
 (define +tiles+
   (append

@@ -93,3 +93,18 @@
     (map
      (lambda (i) (cube-nearest (cube-lerp a b (* (/ 1 dc) i))))
      (iota (+ 1 dc) 0))))
+
+(define cube-directions
+  '(( 1 -1  0)
+    ( 1  0 -1)
+    ( 0  1 -1)
+    (-1  1  0)
+    (-1  0  1)
+    ( 0 -1  1)))
+
+(define (cube-add a b)
+  (map + a b))
+
+(define (cube-neighbors cube alist)
+  (let ((candidates (map (lambda (dir) (cube-add dir cube)) cube-directions)))
+    (filter (lambda (c) (assoc c alist)) candidates)))
