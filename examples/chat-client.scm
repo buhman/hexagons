@@ -4,7 +4,7 @@
      parley)
 
 (define (chat-message text port)
-  (let ((msg (list 'event 'chat-message text)))
+  (let ((msg (list 'event 'chat 'message text)))
     (write msg port)))
 
 (define (input-loop out)
@@ -51,5 +51,7 @@
           (input (thread-start! (lambda () (input-loop out)))))
       (thread-join! client)
       (thread-join! input))))
+
+(tcp-read-timeout #f)
 
 (start-client)

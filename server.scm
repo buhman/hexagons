@@ -36,16 +36,16 @@
   (map
    (lambda (conn)
      (let ((out (cdr conn))
-           (msg (list 'event 'chat-message text)))
+           (msg (append '(event chat) text)))
        (print msg (car conn))
        (write msg out)))
    *connections*))
 
 (define (dispatch-message thread-id out msg)
   (match msg
-    (`(event . ,evt)
-     (match evt
-       (`(chat-message . ,text) (bleh text))))
+    (`(event . ,type)
+     (match type
+       (`(chat . ,evt) (bleh evt))))
     (`(command . ,cmd)
      (print "cmd:" cmd))))
 

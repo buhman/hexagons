@@ -4,7 +4,8 @@
      srfi-13
      srfi-18
      matchable
-     section-combinators)
+     section-combinators
+     tcp6)
 
 ;; aliases
 
@@ -29,9 +30,11 @@
 ;; includes
 
 (include "model.scm")
+(include "chat.scm")
 (include "render.scm")
 (include "events.scm")
 (include "path.scm")
+(include "network.scm")
 
 ;; constants
 
@@ -114,37 +117,64 @@
 
 ;; text
 
-(define *font* (ttf:open-font "DejaVuSansMono.ttf" 20))
+(define +default-font-size+ 20)
+(define *font-size* +default-font-size+)
+(define *font* (ttf:open-font "DejaVuSansMono.ttf" *font-size*))
 
-;; event loop
+;; game event loop
 
-(define (event-loop)
+(define (event-loop out)
   (call/cc
    (lambda (exit-loop!)
      (let loop ()
        (sdl2:pump-events!)
-       (handle-events! exit-loop!)
+       (handle-events! exit-loop! out)
 
        (render-scene! *renderer*)
+
+       (render-chat! *renderer*)
 
        (sdl2:render-present! *renderer*)
        (sdl2:delay! 20)
        (thread-yield!)
        (loop)))))
 
+;; network event loop
+
+(tcp-read-timeout #f)
+
+(define (network-loop in)
+  (let handle-next-message ()
+    (when (and (not (port-closed? in))
+               (handle-message in))
+      (thread-yield!)
+      (handle-next-message)))
+  (print "network loop exit"))
+
+;; client
+
+(define +hostname+ "localhost")
+(define +port+ 4242)
+
+(define (game-client)
+  (let-values (((in out) (tcp-connect +hostname+ +port+)))
+    (let ((net-thread (thread-start! (lambda () (network-loop in)))))
+      (event-loop out)
+      (thread-terminate! net-thread))))
+
 ;; background thread
 
-(define *event-loop-thread* (make-parameter #f))
+(define *game-client-thread* (make-parameter #f))
 
 (begin
-  (when (not (eq? (*event-loop-thread*) #f))
-    (thread-terminate! (*event-loop-thread*)))
-  (*event-loop-thread* (thread-start! event-loop)))
+  (when (not (eq? (*game-client-thread*) #f))
+    (thread-terminate! (*game-client-thread*)))
+  (*game-client-thread* (thread-start! game-client)))
 
 ;; restart a terminated event loop
-(when (eq? 'terminated (thread-state (*event-loop-thread*)))
-  (*event-loop-thread* (thread-start! event-loop)))
+(when (eq? 'terminated (thread-state (*game-client-thread*)))
+  (*game-client-thread* (thread-start! game-client)))
 
 (cond-expand
- (compiling (thread-join! (*event-loop-thread*)))
+ (compiling (thread-join! (*game-client-thread*)))
  (else))

@@ -1,10 +1,20 @@
 ;; event handling
 
-(define (handle-event! ev exit-loop!)
+(define (handle-event! ev exit-loop! out)
   (case (sdl2:event-type ev)
     ((quit)
      (print "quit")
      (exit-loop! #t))
+
+    ((key-down)
+     (chat-handle-key (sdl2:keyboard-event-sym ev) out))
+     ;(print 'key-down " " (sdl2:keyboard-event-sym ev)))
+
+    ((key-up))
+     ;(print 'key-up " " (sdl2:keyboard-event-sym ev)))
+
+    ((text-input)
+     (chat-handle-input-text (sdl2:text-input-event-text ev)))
 
     ((mouse-button-down)
      (case (sdl2:mouse-button-event-button ev)
@@ -40,9 +50,9 @@
          #f
          (set! (grip-scale *grip*) new-scale))))))
 
-(define (handle-events! exit-loop!)
+(define (handle-events! exit-loop! out)
   (cond
    ((sdl2:has-events?)
     (begin
-      (handle-event! (sdl2:poll-event!) exit-loop!)
-      (handle-events! exit-loop!)))))
+      (handle-event! (sdl2:poll-event!) exit-loop! out)
+      (handle-events! exit-loop! out)))))
