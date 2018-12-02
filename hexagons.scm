@@ -45,6 +45,7 @@
 (define +lightgrey+ (C 183 183 183))
 (define +blue+ (C 34 0 255))
 (define +purple+ (C 255 0 255))
+(define +yellow+ (C 255 255 0))
 
 ;; tiles/scene
 

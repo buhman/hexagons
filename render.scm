@@ -56,9 +56,19 @@
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
       (sdl2:render-draw-lines! renderer (map (lambda (c) (cube->pixel *grip* c)) (cube-line a b))))))
 
+(define (render-neighbors! renderer scale)
+  (let* ((cube (selector-hover-tile *selector*))
+         (lines (map (lambda (n) (list (cube->pixel *grip* cube) (cube->pixel *grip* n)))
+                     (cube-neighbors cube +tiles+))))
+    (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +yellow+ +darkgrey+))
+    (for-each
+     (lambda (line) (sdl2:render-draw-lines! renderer line))
+     lines)))
+
 (define (render-scene! renderer)
   (set! (sdl2:render-draw-color *renderer*) +black+)
   (sdl2:render-clear! *renderer*)
 
   (render-tiles! renderer (grip-scale *grip*))
+  (render-neighbors! renderer (grip-scale *grip*))
   (render-path! renderer (grip-scale *grip*)))
