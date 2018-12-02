@@ -55,10 +55,10 @@
   (let ((cube (axial->cube axial)))
     (cons
      cube
-     (make-tile cube color #f))))
+     (make-tile cube color pathable))))
 
 (define (TP axial)
-  (tile-alist axial +white+ #f))
+  (tile-alist axial +white+ #t))
 
 (define (TU axial)
   (tile-alist axial +blue+ #f))

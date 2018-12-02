@@ -105,6 +105,11 @@
 (define (cube-add a b)
   (map + a b))
 
-(define (cube-neighbors cube alist)
+;; tile
+
+(define (tile-neighbors cube alist)
   (let ((candidates (map (lambda (dir) (cube-add dir cube)) cube-directions)))
-    (filter (lambda (c) (assoc c alist)) candidates)))
+    (filter (lambda (c)
+              (let ((tile (assoc c alist)))
+                (and tile (tile-pathable? (cdr tile)))))
+            candidates)))
