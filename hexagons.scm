@@ -37,6 +37,7 @@
 (include "path.scm")
 (include "network.scm")
 (include "token.scm")
+(include "animator.scm")
 
 ;; constants
 
@@ -152,8 +153,9 @@
        (sdl2:pump-events!)
        (handle-events! exit-loop! out)
 
-       (render-scene! *renderer*)
+       (animators-update! (sdl2:get-ticks))
 
+       (render-scene! *renderer*)
        (render-chat! *renderer*)
 
        (sdl2:render-present! *renderer*)

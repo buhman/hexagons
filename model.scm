@@ -121,3 +121,13 @@
               (let ((tile (assoc c alist)))
                 (and tile (tile-pathable? (cdr tile)))))
             candidates)))
+
+;; path
+
+(define (cube-path-lerp path t)
+  (let* ((steps (length path))
+         (step (* t (sub1 steps)))
+         (fstep (exact (floor step)))
+         (a (list-ref path fstep))
+         (b (list-ref path (add1 fstep))))
+    (cube-lerp a b (- step fstep))))

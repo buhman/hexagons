@@ -57,11 +57,11 @@
       (sdl2:render-draw-lines! renderer (map (lambda (c) (cube->pixel *grip* c)) (cube-line a b))))))
 
 (define (render-flood-path! renderer scale)
-  (let* ((a (selector-hover-tile *selector*))
-         (b (selector-focus-tile *selector*)))
+  (let* ((a (selector-focus-tile *selector*))
+         (b (selector-hover-tile *selector*)))
     (when (and a b (not (equal? a b)))
-      (let* ((node-graph (flood-search b +tiles+ tile-neighbors))
-             (node-path (flood-path b a node-graph)))
+      (let* ((node-graph (flood-search a +tiles+ tile-neighbors))
+             (node-path (flood-path a b node-graph)))
         (when node-path
           (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
           (sdl2:render-draw-lines! renderer
