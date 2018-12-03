@@ -13,12 +13,14 @@
   (let ((point (mouse-button-event->point ev)))
     (cube-nearest (pixel->cube grip point))))
 
-(define (select-token! ev)
+;; client-side
+(define (event-token-select! ev)
   (let* ((cube (mouse-button-event->cube *grip* ev))
          (token (assoc cube *tokens*)))
     (set! (selector-focus-tile *selector*) (and token cube))))
 
-(define (move-token! ev out)
+;; server-side
+(define (event-token-move! ev out)
   (let* ((cube (mouse-button-event->cube *grip* ev))
          (token (assoc (selector-focus-tile *selector*) *tokens*)))
     (when token
@@ -47,9 +49,9 @@
         (set! (grip-x *grip*) (sdl2:mouse-button-event-x ev))
         (set! (grip-y *grip*) (sdl2:mouse-button-event-y ev)))
        ((left)
-        (select-token! ev))
+        (event-token-select! ev))
        ((right)
-        (move-token! ev out))))
+        (event-token-move! ev out))))
 
     ((mouse-motion)
      (match (sdl2:mouse-motion-event-state ev)
