@@ -7,7 +7,10 @@
       (->> *tokens*
            (alist-delete (token-cube token))
            (alist-cons (token-cube new-token) new-token)))
-    (set! (selector-focus-tile *selector*) cube)))
+    ;; move the selector with the token, if its previous focus was this token
+    (let ((s-cube (selector-focus-tile *selector*)))
+      (when (equal? s-cube (token-cube token))
+        (set! (selector-focus-tile *selector*) cube)))))
 
 (define (token-handle-event! evt)
   (match evt
