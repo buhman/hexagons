@@ -105,7 +105,8 @@
 
 (define-values (*window* *renderer*)
   (sdl2:create-window-and-renderer!
-   +screen-width+ +screen-height+))
+   +screen-width+ +screen-height+
+   '(shown resizable allow-high-dpi)))
 
 (set! (sdl2:window-title *window*) +title+)
 
