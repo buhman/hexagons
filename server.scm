@@ -6,14 +6,19 @@
 
 (define *connections* '())
 
-(define (mutex-update! mut fn)
+(define (with-mutex-lock! mut fn)
   (dynamic-wind
       (lambda () (mutex-lock! mut))
-      (lambda ()
-        (let ((val (fn (mutex-specific mut))))
-          (mutex-specific-set! mut val)
-          val))
+      fn
       (lambda () (mutex-unlock! mut))))
+
+(define (mutex-update! mut fn)
+  (with-mutex-lock!
+   mut
+   (lambda ()
+     (let ((val (fn (mutex-specific mut))))
+       (mutex-specific-set! mut val)
+       val))))
 
 (define (make-mutex/value name value)
   (let ((mut (make-mutex name)))
@@ -34,26 +39,47 @@
 (define (broadcast-message msg)
   (map
    (lambda (conn) (write msg (cdr conn)))
-   *connections*))
+   *connections*)
+  msg)
 
 (define (make-chat-message thread-id alist)
   (let ((al (alist-delete 'id alist)))
     `(event chat message ,(alist-cons 'id thread-id al))))
 
+(define (event-log-replay! out)
+  (let* ((event-log (mutex-specific *event-log*))
+         (log (reverse event-log)))
+    (map
+     (lambda (event) (write event out))
+     log)))
+
 (define (dispatch-message thread-id out msg)
+  (print "dispatch-message: " msg)
   (match msg
     (`(event . ,type)
      (match type
        (`(chat . (message . ,alist))
         (broadcast-message (make-chat-message thread-id alist)))))
-    (`(command . ,cmd)
-     (print "cmd:" cmd))))
+    (`(command . ,type)
+     (match type
+       (`(log . (replay . ()))
+        (event-log-replay! out)))
+     ;; commands never mutate the event log
+     #f)))
+
+(define (event-log-append! thunk)
+  (mutex-update!
+   *event-log*
+   (lambda (event-log)
+     (let ((event (thunk)))
+       (if event
+         (cons event event-log)
+         event-log)))))
 
 (define (handle-message thread-id in out)
   (handle-exceptions exn
     (case (get-condition-property exn 'exn 'location)
-      ((socket-receive!))
-       ;(print "thread-id[" thread-id "]: ignore socket-recieve timeout"))
+      ((socket-receive!)) ; ignore/retry socket-receive timeout
       (else
        (print-exception! exn thread-id)
        (close-input-port in)
@@ -61,16 +87,12 @@
     (let ((msg (read in)))
       (case msg
         ((#!eof) (error 'handle-message "client eof"))
-        (else (dispatch-message thread-id out msg))))))
-
-(define (with-mutex-lock! mut fn)
-  (dynamic-wind
-      (lambda () (mutex-lock! mut))
-      fn
-      (lambda () (mutex-unlock! mut))))
+        (else
+         (event-log-append!
+          (lambda () (dispatch-message thread-id out msg))))))))
 
 (define (accept-loop listener)
-  (let* ((thread-count (make-mutex/value 'thread-count 0)))
+  (let ((thread-count (make-mutex/value 'thread-count 0)))
     (let accept-next-connection ()
       (let*-values (((in out) (tcp-accept listener))
                     ((local remote) (tcp-addresses in))
@@ -78,6 +100,8 @@
         (with-mutex-lock!
          thread-count
          (lambda () (set! *connections* (alist-cons thread-id out *connections*))))
+
+        (print "connected: " remote)
 
         (thread-start!
          (lambda ()
@@ -95,9 +119,15 @@
       (accept-next-connection))))
 
 (define (start-server)
+  ; event log persistence?
+  (set! *event-log* (make-mutex/value 'event-log '()))
   (let ((listener (tcp-listen +port+)))
     (print "listening " +port+)
     (accept-loop listener)))
+
+;; state
+
+(define *event-log* #f)
 
 ;; background thread
 

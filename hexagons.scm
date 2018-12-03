@@ -158,6 +158,7 @@
 
 (define (game-client)
   (let-values (((in out) (tcp-connect +hostname+ +port+)))
+    (write '(command log replay) out)
     (let ((net-thread (thread-start! (lambda () (network-loop in)))))
       (event-loop out)
       (thread-terminate! net-thread))))

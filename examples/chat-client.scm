@@ -47,6 +47,9 @@
 
 (define (start-client)
   (let-values (((in out) (tcp-connect +hostname+ +port+)))
+    (begin
+      (print "requested event log replay")
+      (write '(command log replay) out))
     (let ((client (thread-start! (lambda () (client-loop in))))
           (input (thread-start! (lambda () (input-loop out)))))
       (thread-join! client)
