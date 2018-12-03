@@ -15,4 +15,4 @@
 ;; model
 
 (define (make-chat-message text)
-  (list 'event 'chat 'message text))
+  `(event chat message (text . ,text)))

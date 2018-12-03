@@ -25,35 +25,63 @@
 
 (define (chat-handle-event! evt)
   (match evt
-    (`(message . ,(text . ()))
-     (set! *chat-history* (cons text *chat-history*)))))
+    (`(message . ,(alist . ()))
+     (set! *chat-history* (cons alist *chat-history*)))))
 
 (define +chat-lines+ 5)
 
-(define (input-buffer-rect renderer line-width line-height line-num)
-  (set! *lh* line-height)
+(define (input-buffer-rect renderer x-offset line-width line-height line-num)
   (let-values (((rw rh) (sdl2:renderer-output-size *renderer*)))
     (let* ((padding (floor (/ line-height 2)))
            (line-space (floor (/ line-height 4)))
-           (x padding)
+           ;; XXX: hacky
+           (x (+ x-offset (* padding (if (eq? 0 x-offset) 1 2))))
            (y (- rh (* (+ line-space line-height) (+ 1 line-num)))))
       (R x y line-width line-height))))
 
-(define (render-chat-line! renderer color s line-num)
-  (let* ((surface (ttf:render-text-solid *font* s color))
-         (texture (sdl2:create-texture-from-surface *renderer* surface))
-         (w (sdl2:surface-w surface))
-         (h (sdl2:surface-h surface))
-         (dest-rect (input-buffer-rect renderer w h line-num)))
-    (sdl2:render-copy! renderer texture #f dest-rect)))
+(define (input-buffer-rects renderer pre-t text-t line-num)
+  (let* ((pre-w (sdl2:texture-w pre-t))
+         (pre-h (sdl2:texture-h pre-t))
+         (prefix-rect (input-buffer-rect renderer 0 pre-w pre-h line-num))
+         (text-w (sdl2:texture-w text-t))
+         (text-h (sdl2:texture-h text-t))
+         (text-rect (input-buffer-rect renderer pre-w text-w text-h line-num)))
+    (values prefix-rect text-rect)))
+
+(define (render-text renderer text color)
+  (let ((surface (ttf:render-text-solid *font* text color)))
+    (sdl2:create-texture-from-surface *renderer* surface)))
+
+(define (render-chat-text renderer pre text color)
+  (let* ((pre-color (sdl2:color-mult color +lightgrey+))
+         (pre-t (render-text renderer pre pre-color))
+         (text-t (render-text renderer text color)))
+    (values pre-t text-t)))
+
+(define (render-chat-line! renderer pre text color line-num)
+  (let*-values (((pre-t text-t) (render-chat-text renderer pre text color))
+                ((pre-r text-r) (input-buffer-rects renderer pre-t text-t line-num)))
+    (sdl2:render-copy! renderer pre-t #f pre-r)
+    (sdl2:render-copy! renderer text-t #f text-r)))
 
 (define (render-input-buffer! renderer)
-  (let* ((s (input-buffer->string *input-buffer*)))
-    (render-chat-line! renderer +white+ s 0)))
+  (let* ((s (input-buffer->string *input-buffer*))
+         (s-t (render-text renderer s +white+))
+         (w (sdl2:texture-w s-t))
+         (h (sdl2:texture-h s-t))
+         (s-r (input-buffer-rect renderer 0 w h 0)))
+    (sdl2:render-copy! renderer s-t #f s-r)))
+
+(define assoc/cdr
+  (compose cdr assoc))
 
 (define (render-chat-history! renderer)
   (map
-   (lambda (s line-num) (render-chat-line! renderer +white+ s line-num))
+   (lambda (alist line-num)
+     (let* ((text (assoc/cdr 'text alist))
+            (id (assoc/cdr 'id alist))
+            (pre (string-join (list "[" (number->string id) "]") "")))
+       (render-chat-line! renderer pre text +white+ line-num)))
    *chat-history* (iota +chat-lines+ 1)))
 
 (define (render-chat! renderer)

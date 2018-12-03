@@ -31,21 +31,21 @@
 ;; (equal? (cdr (condition->list *last-exception*)) '((i/o) (net) (timeout)))
 ;; #t
 
-(define (bleh text)
-  (print "bleh")
+(define (broadcast-message msg)
   (map
-   (lambda (conn)
-     (let ((out (cdr conn))
-           (msg (append '(event chat) text)))
-       (print msg (car conn))
-       (write msg out)))
+   (lambda (conn) (write msg (cdr conn)))
    *connections*))
+
+(define (make-chat-message thread-id alist)
+  (let ((al (alist-delete 'id alist)))
+    `(event chat message ,(alist-cons 'id thread-id al))))
 
 (define (dispatch-message thread-id out msg)
   (match msg
     (`(event . ,type)
      (match type
-       (`(chat . ,evt) (bleh evt))))
+       (`(chat . (message . ,alist))
+        (broadcast-message (make-chat-message thread-id alist)))))
     (`(command . ,cmd)
      (print "cmd:" cmd))))
 

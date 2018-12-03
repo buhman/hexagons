@@ -4,7 +4,7 @@
      parley)
 
 (define (chat-message text port)
-  (let ((msg (list 'event 'chat 'message text)))
+  (let ((msg `(event chat message (text . ,text))))
     (write msg port)))
 
 (define (input-loop out)
