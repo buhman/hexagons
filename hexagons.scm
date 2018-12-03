@@ -5,7 +5,8 @@
      srfi-18
      matchable
      section-combinators
-     tcp6)
+     tcp6
+     clojurian-syntax)
 
 ;; aliases
 
@@ -35,6 +36,7 @@
 (include "events.scm")
 (include "path.scm")
 (include "network.scm")
+(include "token.scm")
 
 ;; constants
 
@@ -48,10 +50,20 @@
 (define +ultragrey+ (C 55 55 55))
 (define +darkgrey+ (C 98 98 98))
 (define +lightgrey+ (C 183 183 183))
-(define +blue+ (C 34 0 255))
-(define +purple+ (C 255 0 255))
+
+(define +red+ (C 255 0 0))
+(define +orange+ (C 255 128 0))
 (define +yellow+ (C 255 255 0))
 (define +green+ (C 0 255 0))
+(define +cyan+ (C 0 255 128))
+(define +blue+ (C 0 0 255))
+(define +purple+ (C 255 0 255))
+(define +magenta+ (C 255 0 128))
+
+;; helpers
+
+(define assoc/cdr
+  (compose cdr assoc))
 
 ;; tiles/scene
 
@@ -92,6 +104,15 @@
              (2 2)
              (1 3)
              (0 3)))))
+
+(define (T axial id color)
+  (let ((cube (axial->cube axial)))
+    (cons cube (make-token cube id color))))
+
+(define *tokens*
+  (list
+   (T '(0 0) 'orange +orange+)
+   (T '(1 0) 'magenta +magenta+)))
 
 ;; grip
 

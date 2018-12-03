@@ -42,7 +42,7 @@
    *connections*)
   msg)
 
-(define (make-chat-message thread-id alist)
+(define (make-chat-message-id thread-id alist)
   (let ((al (alist-delete 'id alist)))
     `(event chat message ,(alist-cons 'id thread-id al))))
 
@@ -59,7 +59,9 @@
     (`(event . ,type)
      (match type
        (`(chat . (message . ,alist))
-        (broadcast-message (make-chat-message thread-id alist)))))
+        (broadcast-message (make-chat-message-id thread-id alist)))
+       (`(token . (move . ,alist))
+        (broadcast-message msg))))
     (`(command . ,type)
      (match type
        (`(log . (replay . ()))

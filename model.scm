@@ -28,6 +28,15 @@
   (hover-tile selector-hover-tile (setter selector-hover-tile))
   (focus-tile selector-focus-tile (setter selector-focus-tile)))
 
+;; token
+
+(define-record-type token
+  (make-token cube id color)
+  token?
+  (cube token-cube (setter token-cube))
+  (id token-id)
+  (color token-color))
+
 ;; qr(s) axial coordinate system
 
 (define cube-q car)
@@ -76,17 +85,16 @@
 
 (define (cube-nearest cube)
   (let* ((relt (map (compose exact round) cube))
-         (delt (map (lambda (r c) (abs (- r c))) relt cube))
-         (q (cube-q relt))
-         (r (cube-r relt))
-         (s (cube-s relt)))
-    (if (< q r)
-      (if (< r s)
-        (list q r (axis-sub q r))
-        (list q (axis-sub q s) s))
-      (if (< q s)
-        (list q r (axis-sub q r))
-        (list (axis-sub r s) r s)))))
+         (delt (map (lambda (r c) (abs (- r c))) relt cube)))
+    (let-values (((q r s) (apply values relt))
+                 ((dq dr ds) (apply values delt)))
+      (if (< dq dr)
+        (if (< dr ds)
+          (list q r (axis-sub q r))
+          (list q (axis-sub q s) s))
+        (if (< dq ds)
+          (list q r (axis-sub q r))
+          (list (axis-sub r s) r s))))))
 
 (define (cube-line a b)
   (let ((dc (cube-distance a b)))

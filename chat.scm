@@ -72,9 +72,6 @@
          (s-r (input-buffer-rect renderer 0 w h 0)))
     (sdl2:render-copy! renderer s-t #f s-r)))
 
-(define assoc/cdr
-  (compose cdr assoc))
-
 (define (render-chat-history! renderer)
   (map
    (lambda (alist line-num)

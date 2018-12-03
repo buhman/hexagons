@@ -1,5 +1,30 @@
 ;; event handling
 
+;; generate server events
+
+;(define (server-event))
+
+;; this should be made more generic, also not sure if ->cube should event want a
+;; point
+(define (mouse-button-event->point ev)
+  (P (sdl2:mouse-button-event-x ev) (sdl2:mouse-button-event-y ev)))
+
+(define (mouse-button-event->cube grip ev)
+  (let ((point (mouse-button-event->point ev)))
+    (cube-nearest (pixel->cube grip point))))
+
+(define (select-token! ev)
+  (let* ((cube (mouse-button-event->cube *grip* ev))
+         (token (assoc cube *tokens*)))
+    (set! (selector-focus-tile *selector*) (and token cube))))
+
+(define (move-token! ev out)
+  (let* ((cube (mouse-button-event->cube *grip* ev))
+         (token (assoc (selector-focus-tile *selector*) *tokens*)))
+    (when token
+      (let ((msg (make-token-move-event (cdr token) cube)))
+        (write msg out)))))
+
 (define (handle-event! ev exit-loop! out)
   (case (sdl2:event-type ev)
     ((quit)
@@ -22,9 +47,9 @@
         (set! (grip-x *grip*) (sdl2:mouse-button-event-x ev))
         (set! (grip-y *grip*) (sdl2:mouse-button-event-y ev)))
        ((left)
-        (let* ((point (P (sdl2:mouse-button-event-x ev) (sdl2:mouse-button-event-y ev)))
-               (cube (pixel->cube *grip* point)))
-          (set! (selector-focus-tile *selector*) (cube-nearest cube))))))
+        (select-token! ev))
+       ((right)
+        (move-token! ev out))))
 
     ((mouse-motion)
      (match (sdl2:mouse-motion-event-state ev)
