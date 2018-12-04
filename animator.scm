@@ -8,7 +8,7 @@
   (delta-fn animator-delta-fn)
   (end-fn animator-end-fn))
 
-(define *animator-alist* '())
+(define *animators* '())
 
 (define (token-path-animator path cube)
   (lambda (t)
@@ -48,28 +48,18 @@
         #t))))
 
 (define (animators-update! ticks animators)
-  (cons
-   (car animators)
-   (match (cdr animators)
-     ((animator . rest)
-      (let ((epoch (animator-epoch animator)))
-        (when (not epoch)
-          (set! (animator-epoch animator) ticks))
-        (if (animator-update! ticks animator)
-          (cons animator rest)
-          rest)))
-     (() '()))))
+  (match animators
+    ((animator . rest)
+     (let ((epoch (animator-epoch animator)))
+       (when (not epoch)
+         (set! (animator-epoch animator) ticks))
+       (if (animator-update! ticks animator)
+         (cons animator rest)
+         rest)))
+    (() '())))
 
-(define (animator-alist-update! ticks)
-  (set! *animator-alist*
-    (map
-     (lambda (animators)
-       (animators-update! ticks animators))
-     *animator-alist*)))
+(define (animator-list-update! ticks)
+  (set! *animators* (animators-update! ticks *animators*)))
 
-(define (register-token-animator! token animator)
-  (set! *animator-alist*
-    (let* ((id (token-id token))
-           (key (list 'token id))
-           (animators (alist-ref key *animator-alist* equal? '())))
-      (alist-update key (append animators (list animator)) *animator-alist* equal?))))
+(define (append-token-animator! animator)
+  (set! *animators* (append *animators* (list animator))))
