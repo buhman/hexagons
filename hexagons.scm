@@ -32,6 +32,7 @@
 
 (include "model.scm")
 (include "chat.scm")
+(include "draw.scm")
 (include "render.scm")
 (include "events.scm")
 (include "path.scm")
