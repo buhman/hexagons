@@ -153,7 +153,7 @@
        (sdl2:pump-events!)
        (handle-events! exit-loop! out)
 
-       (animators-update! (sdl2:get-ticks))
+       (animator-alist-update! (sdl2:get-ticks))
 
        (render-scene! *renderer*)
        (render-chat! *renderer*)

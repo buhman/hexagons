@@ -2,16 +2,11 @@
 
 (define (token-move! token a b)
   (and-let* ((sg (flood-search a +tiles+ tile-neighbors))
-             (path (reverse (flood-path a b sg)))
+             (rpath (flood-path a b sg))
+             (path (reverse rpath))
              (duration (* +ms-per-node+ (length path))))
-    ;; update the token key, but do not actually move the token
-    (set! *tokens*
-      (->> *tokens*
-           (alist-delete a)
-           (alist-cons b token)))
-    ;; instead, create a new animator to show the motion
-    (set! *animators*
-      (cons (make-token-path-animator (sdl2:get-ticks) duration path b) *animators*))
+    ;; create a new animator to show the motion
+    (register-token-animator! token (make-token-path-animator #f duration path a))
     ;; move the selector with the token, if its previous focus was this token
     (let ((s-cube (selector-focus-tile *selector*)))
       (when (equal? s-cube a)
