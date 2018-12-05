@@ -54,7 +54,7 @@
         (event-token-move! ev out))))
 
     ((mouse-motion)
-     (set! *mouse* (list (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
+     (set! *mouse* (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
      (match (sdl2:mouse-motion-event-state ev)
        ('(middle)
         (set! (grip-dx *grip*) (+ (grip-dx *grip*)

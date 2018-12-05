@@ -23,7 +23,7 @@
   (for-each
    (lambda (edge)
      (match edge
-       (((xa ya) (xb yb))
+       (((xa . ya) . (xb . yb))
         (sdl2:render-draw-line! renderer xa ya xb yb))))
    edges))
 

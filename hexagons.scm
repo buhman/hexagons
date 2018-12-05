@@ -38,6 +38,7 @@
 (include "network.scm")
 (include "token.scm")
 (include "animator.scm")
+(include "lighting.scm")
 
 ;; constants
 
@@ -123,7 +124,7 @@
 
 (define *selector* (make-selector '(0 0 0) '(0 0 0)))
 
-(define *mouse* '(0 0))
+(define *mouse* '(0 . 0))
 
 ;; window / renderer
 
@@ -158,6 +159,7 @@
        (animator-list-update! (sdl2:get-ticks))
 
        (render-scene! *renderer*)
+       (render-lighting! *renderer* *grip*)
        (render-chat! *renderer*)
 
        (render-fps! *renderer* (- (sdl2:get-ticks) ticks))

@@ -113,7 +113,7 @@
 
   (let ((scale (grip-scale *grip*)))
     (render-tiles! renderer scale)
-    (render-neighbors! renderer scale)
+    ;(render-neighbors! renderer scale)
     (render-linear-path! renderer scale)
     (render-flood-path! renderer scale)
 
