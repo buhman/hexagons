@@ -9,9 +9,9 @@
 (define (hexagon-points cx cy radius)
   (map (lambda (n)
          (let* ((angle (- (* +pi/3+ n) +pi/6+))
-                (x (round (+ cx (* radius (cos angle)))))
-                (y (round (+ cy (* radius (sin angle))))))
-           (P x y)))
+                (x (inexact->exact (round (+ cx (* radius (cos angle))))))
+                (y (inexact->exact (round (+ cy (* radius (sin angle)))))))
+           (cons x y)))
        (iota 7 0)))
 
 (define (hexagon-pts cx cy radius)

@@ -26,3 +26,13 @@
        (((xa ya) (xb yb))
         (sdl2:render-draw-line! renderer xa ya xb yb))))
    edges))
+
+(define (render-draw-lines! renderer points)
+  (let loop ((pts points)
+             (lp #f))
+    (match pts
+      ((p . rest)
+       (when lp
+         (sdl2:render-draw-line! renderer (car lp) (cdr lp) (car p) (cdr p)))
+       (loop rest p))
+      (() '()))))

@@ -14,7 +14,7 @@
 (define (render-hex! renderer cx cy radius color)
   (let* ((points (hexagon-points cx cy radius)))
     (set! (sdl2:render-draw-color renderer) color)
-    (sdl2:render-draw-lines! renderer points)))
+    (render-draw-lines! renderer points)))
 
 (define (render-traps! renderer traps dx dy color)
   (let ((ts (translate-trapezoids traps dx dy)))
@@ -25,12 +25,12 @@
      ts)))
 
 (define (render-hex-cube! renderer scale cube color ht)
-  (let* ((point (cube->pixel *grip* cube))
-         (cx (sdl2:point-x point))
-         (cy (sdl2:point-y point)))
-    (render-traps! renderer ht cx cy (sdl2:color-mult color +ultragrey+))
-    (render-hex! renderer cx cy scale color)
-    (render-cube-text! renderer cx cy cube +white+)))
+  (let ((point (cube->point *grip* cube)))
+    (match point
+      ((cx . cy)
+       (render-traps! renderer ht cx cy (sdl2:color-mult color +ultragrey+))
+       (render-hex! renderer cx cy scale color)
+       (render-cube-text! renderer cx cy cube +white+)))))
 
 (define (select-color base-color selected?)
   (let ((grey (if selected? +lightgrey+ +darkgrey+)))
@@ -60,7 +60,7 @@
         (b (selector-focus-tile *selector*)))
     (when (and a b (not (equal? a b)))
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
-      (sdl2:render-draw-lines! renderer (map (lambda (c) (cube->pixel *grip* c)) (cube-line a b))))))
+      (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) (cube-line a b))))))
 
 (define (render-flood-path! renderer scale)
   (let* ((a (selector-focus-tile *selector*))
@@ -70,17 +70,16 @@
              (node-path (flood-path a b node-graph)))
         (when node-path
           (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
-          (sdl2:render-draw-lines! renderer
-                                   (map (lambda (c) (cube->pixel *grip* c)) node-path)))))))
+          (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) node-path)))))))
 
 (define (render-neighbors! renderer scale)
   (let* ((cube (selector-hover-tile *selector*))
-         (lines (map (lambda (n) (list (cube->pixel *grip* cube) (cube->pixel *grip* n)))
-                     (tile-neighbors cube +tiles+))))
+         (ll (map (lambda (n) (list (cube->point *grip* cube) (cube->point *grip* n)))
+                  (tile-neighbors cube +tiles+))))
     (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +yellow+ +darkgrey+))
     (for-each
-     (lambda (line) (sdl2:render-draw-lines! renderer line))
-     lines)))
+     (lambda (lines) (render-draw-lines! renderer lines))
+     ll)))
 
 ;; tokens
 
@@ -94,11 +93,11 @@
          (alpha (if (equal? (selector-focus-tile *selector*) cube) 128 64))
          (color (multiply-alpha base-color alpha))
          (half-side (floor (/ scale 2)))
-         (point (cube->pixel *grip* cube)))
-    (let-values (((x y) (apply values (map (lambda (c) (- c half-side))
-                                           (sdl2:point->list point)))))
-      (set! (sdl2:render-draw-color renderer) color)
-      (sdl2:render-fill-rect! renderer (R x y scale scale)))))
+         (point (cube->point *grip* cube)))
+    (match point
+      ((x . y)
+       (set! (sdl2:render-draw-color renderer) color)
+       (sdl2:render-fill-rect! renderer (R (- x half-side) (- y half-side) scale scale))))))
 
 (define (render-tokens! renderer scale)
   (for-each

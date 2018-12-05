@@ -11,7 +11,6 @@
 ;; aliases
 
 (define C sdl2:make-color)
-(define P sdl2:make-point)
 (define R sdl2:make-rect)
 
 ;; initialization
@@ -123,6 +122,8 @@
 ;; selector
 
 (define *selector* (make-selector '(0 0 0) '(0 0 0)))
+
+(define *mouse* '(0 0))
 
 ;; window / renderer
 

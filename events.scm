@@ -7,11 +7,11 @@
 ;; this should be made more generic, also not sure if ->cube should event want a
 ;; point
 (define (mouse-button-event->point ev)
-  (P (sdl2:mouse-button-event-x ev) (sdl2:mouse-button-event-y ev)))
+  (cons (sdl2:mouse-button-event-x ev) (sdl2:mouse-button-event-y ev)))
 
 (define (mouse-button-event->cube grip ev)
   (let ((point (mouse-button-event->point ev)))
-    (cube-nearest (pixel->cube grip point))))
+    (cube-nearest (point->cube grip point))))
 
 ;; client-side
 (define (event-token-select! ev)
@@ -54,19 +54,18 @@
         (event-token-move! ev out))))
 
     ((mouse-motion)
+     (set! *mouse* (list (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
      (match (sdl2:mouse-motion-event-state ev)
        ('(middle)
         (set! (grip-dx *grip*) (+ (grip-dx *grip*)
-                                  (- (grip-x *grip*)
-                                     (sdl2:mouse-motion-event-x ev))))
+                                  (- (grip-x *grip*) (sdl2:mouse-motion-event-x ev))))
         (set! (grip-dy *grip*) (+ (grip-dy *grip*)
-                                  (- (grip-y *grip*)
-                                     (sdl2:mouse-motion-event-y ev))))
+                                  (- (grip-y *grip*) (sdl2:mouse-motion-event-y ev))))
         (set! (grip-x *grip*) (sdl2:mouse-motion-event-x ev))
         (set! (grip-y *grip*) (sdl2:mouse-motion-event-y ev)))
        ('()
-        (let* ((point (P (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
-               (cube (pixel->cube *grip* point)))
+        (let* ((point (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
+               (cube (point->cube *grip* point)))
           (set! (selector-hover-tile *selector*) (cube-nearest cube))))
        (x #f)))
 
