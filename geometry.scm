@@ -25,8 +25,10 @@
 ;; line
 
 (define (line-lerp-y->x a b y)
-  (let-values (((ax ay) (apply values a))
-               ((bx by) (apply values b)))
+  (let ((ax (car a))
+        (ay (cadr a))
+        (bx (car b))
+        (by (cadr b)))
     (let ((t (/ (- y ay) (- by ay))))
       (exact (floor (lerp ax bx t))))))
 
@@ -119,3 +121,24 @@
              (cons (apply make-trapezoid `(,@last-ht ,@ht)) (loop rest ht))
              (loop rest ht))))
         (() '())))))
+
+;; hexagon-trapezoids
+
+(define (hexagon-trapezoids scale)
+  (let* ((points (hexagon-pts 0 0 scale))
+         (edges (points->edges points))
+         (traps (trapezoid-decompose edges)))
+    traps))
+
+(define (translate-trapezoid trap dx dy)
+  (map
+   (lambda (pair)
+     (match pair
+       ((x y) (list (+ dx x) (+ dy y)))))
+   trap))
+
+(define (translate-trapezoids traps dx dy)
+  (map
+   (lambda (trap)
+     (translate-trapezoid trap dx dy))
+   traps))

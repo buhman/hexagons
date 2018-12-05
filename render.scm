@@ -11,42 +11,48 @@
          (dest-rect (R (round (- cx (/ w 2))) (round (- cy (/ h 2))) w h)))
     (sdl2:render-copy! renderer texture #f dest-rect)))
 
-(define (render-hex! renderer cx cy radius color filled?)
-  (let* ((points (hexagon-points cx cy radius))
-         (tris (intersperse points (P cx cy))))
-    (when filled?
-      (set! (sdl2:render-draw-color renderer) (sdl2:color-mult color +ultragrey+))
-      (sdl2:render-draw-lines! renderer tris))
+(define (render-hex! renderer cx cy radius color)
+  (let* ((points (hexagon-points cx cy radius)))
     (set! (sdl2:render-draw-color renderer) color)
     (sdl2:render-draw-lines! renderer points)))
 
-(define (render-hex-cube! renderer scale cube color filled?)
+(define (render-traps! renderer traps dx dy color)
+  (let ((ts (translate-trapezoids traps dx dy)))
+    (set! (sdl2:render-draw-color renderer) color)
+    (for-each
+     (lambda (t)
+       (render-draw-trapezoid! renderer t))
+     ts)))
+
+(define (render-hex-cube! renderer scale cube color ht)
   (let* ((point (cube->pixel *grip* cube))
          (cx (sdl2:point-x point))
          (cy (sdl2:point-y point)))
-    (render-hex! renderer cx cy scale color filled?)
-    (render-cube-text! renderer cx cy cube color)))
+    (render-traps! renderer ht cx cy (sdl2:color-mult color +ultragrey+))
+    (render-hex! renderer cx cy scale color)
+    (render-cube-text! renderer cx cy cube +white+)))
 
 (define (select-color base-color selected?)
   (let ((grey (if selected? +lightgrey+ +darkgrey+)))
     (sdl2:color-mult grey base-color)))
 
-(define (render-tile! renderer scale selected? filled? tile)
+(define (render-tile! renderer scale selected? tile ht)
   (let* ((cube (tile-cube tile))
          (base-color (tile-color tile))
          (color (select-color base-color selected?)))
-    (render-hex-cube! renderer scale cube color filled?)))
+    (render-hex-cube! renderer scale cube color ht)))
 
 (define (render-tiles! renderer scale)
   (let-values (((bg fg) (partition (lambda (tile)
                                      (not (equal? (tile-cube tile)
                                                   (selector-hover-tile *selector*))))
-                                   (map cdr +tiles+))))
+                                   (map cdr +tiles+)))
+               ((ht) (hexagon-trapezoids scale)))
     (for-each
-     (lambda (tile) (render-tile! renderer scale #f #f tile))
+     (lambda (tile) (render-tile! renderer scale #f tile ht))
      bg)
     (for-each
-     (lambda (tile) (render-tile! renderer scale #t #f tile))
+     (lambda (tile) (render-tile! renderer scale #t tile ht))
      fg)))
 
 (define (render-linear-path! renderer scale)
@@ -113,3 +119,13 @@
     (render-flood-path! renderer scale)
 
     (render-tokens! renderer scale)))
+
+;; fps
+
+(define (render-fps! renderer dt)
+  (let* (;(fps (round (* (/ 1 dt) 1000)))
+         (surface (ttf:render-text-solid *font* (number->string dt) +white+))
+         (texture (sdl2:create-texture-from-surface *renderer* surface))
+         (w (sdl2:texture-w texture))
+         (h (sdl2:texture-h texture)))
+    (sdl2:render-copy! renderer texture #f (R 0 0 w h))))

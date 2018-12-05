@@ -150,7 +150,7 @@
 (define (event-loop out)
   (call/cc
    (lambda (exit-loop!)
-     (let loop ()
+     (let loop ((ticks (sdl2:get-ticks)))
        (sdl2:pump-events!)
        (handle-events! exit-loop! out)
 
@@ -159,10 +159,12 @@
        (render-scene! *renderer*)
        (render-chat! *renderer*)
 
+       (render-fps! *renderer* (- (sdl2:get-ticks) ticks))
+
        (sdl2:render-present! *renderer*)
        (sdl2:delay! 20)
        (thread-yield!)
-       (loop)))))
+       (loop (sdl2:get-ticks))))))
 
 ;; network event loop
 
