@@ -52,8 +52,8 @@
          (r (cube-r cube))
          (x (* scale (+ (* (sqrt 3) q) (* (/ (sqrt 3) 2) r))))
          (y (* scale (/ 3 2) r)))
-    (cons (+ (grip-dx grip) (round x))
-          (+ (grip-dy grip) (round y)))))
+    (cons (+ (grip-dx grip) (inexact->exact (round x)))
+          (+ (grip-dy grip) (inexact->exact (round y))))))
 
 (define (point->cube grip point)
   (let* ((scale (grip-scale grip))

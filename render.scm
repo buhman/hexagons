@@ -12,7 +12,7 @@
     (sdl2:render-copy! renderer texture #f dest-rect)))
 
 (define (render-hex! renderer cx cy radius color)
-  (let* ((points (hexagon-points cx cy radius)))
+  (let* ((points (hexagon-points cx cy radius 7)))
     (set! (sdl2:render-draw-color renderer) color)
     (render-draw-lines! renderer points)))
 

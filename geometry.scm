@@ -6,29 +6,21 @@
 
 ;; hexagon
 
-(define (hexagon-points cx cy radius)
+(define (hexagon-points cx cy radius #!optional (num 6))
   (map (lambda (n)
          (let* ((angle (- (* +pi/3+ n) +pi/6+))
                 (x (inexact->exact (round (+ cx (* radius (cos angle))))))
                 (y (inexact->exact (round (+ cy (* radius (sin angle)))))))
            (cons x y)))
-       (iota 7 0)))
-
-(define (hexagon-pts cx cy radius)
-  (map (lambda (n)
-         (let* ((angle (- (* +pi/3+ n) +pi/6+))
-                (x (round (+ cx (* radius (cos angle)))))
-                (y (round (+ cy (* radius (sin angle))))))
-           (list x y)))
-       (iota 6 0)))
+       (iota num 0)))
 
 ;; line
 
 (define (line-lerp-y->x a b y)
   (let ((ax (car a))
-        (ay (cadr a))
+        (ay (cdr a))
         (bx (car b))
-        (by (cadr b)))
+        (by (cdr b)))
     (let ((t (/ (- y ay) (- by ay))))
       (inexact->exact (floor (lerp ax bx t))))))
 
@@ -38,9 +30,9 @@
   (let loop ((pts points))
     (match pts
       ((a . (b . rest))
-       (cons (list a b) (loop (cons b rest))))
+       (cons (cons a b) (loop (cons b rest))))
       ((a . '())
-       (list (list a (car points))))
+       (list (cons a (car points))))
       (() '()))))
 
 (define (sort-pair pair)
@@ -49,20 +41,20 @@
 
 (define (sort-edge ep)
   (match ep
-    ((a b)
-     (if (< (cadr a) (cadr b))
-       (list a b)
-       (list b a)))))
+    ((a . b)
+     (if (< (cdr a) (cdr b))
+       (cons a b)
+       (cons b a)))))
 
 (define (edges-y-intercepts edges y max-y)
   (let loop ((edges edges))
     (match edges
       ((edge . rest)
        (match (sort-edge edge)
-         (((xa ya) (xb yb))
+         (((xa . ya) . (xb . yb))
           (if (or (and (>= y ya) (< y yb))
                   (or (= y ya max-y) (= y yb max-y)))
-            (cons (line-lerp-y->x (list xa ya) (list xb yb) y)
+            (cons (line-lerp-y->x (cons xa ya) (cons xb yb) y)
                   (loop rest))
             (loop rest)))))
       (() '()))))
@@ -72,8 +64,8 @@
     (match edges
       ((edge . rest)
        ;; not sure what value a nested edge structure is providing at this point
-       (cons (cadar edge)
-             (cons (cadadr edge)
+       (cons (cdar edge)
+             (cons (cddr edge)
                    (loop rest))))
       (() '()))))
 
@@ -94,8 +86,8 @@
   (match (cons (sort-pair (cons xa0 xb0))
                (sort-pair (cons xa1 xb1)))
     (((xal . xar) . (xbl . xbr))
-     `((,xal ,y0) (,xar ,y0)
-       (,xbl ,y1) (,xbr ,y1)))))
+     `((,xal . ,y0) (,xar . ,y0)
+       (,xbl . ,y1) (,xbr . ,y1)))))
 
 ;; get unique y-values
 ;; intercept all lines in range
@@ -125,7 +117,7 @@
 ;; hexagon-trapezoids
 
 (define (hexagon-trapezoids scale)
-  (let* ((points (hexagon-pts 0 0 scale))
+  (let* ((points (hexagon-points 0 0 scale))
          (edges (points->edges points))
          (traps (trapezoid-decompose edges)))
     traps))
@@ -134,7 +126,7 @@
   (map
    (lambda (pair)
      (match pair
-       ((x y) (list (+ dx x) (+ dy y)))))
+       ((x . y) (cons (+ dx x) (+ dy y)))))
    trap))
 
 (define (translate-trapezoids traps dx dy)

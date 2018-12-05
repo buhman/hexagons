@@ -1,8 +1,8 @@
 (define (render-draw-trapezoid! renderer trap)
   (match trap
     ((la ra lb rb)
-     (let* ((lay (cadr la))
-            (lby (cadr lb))
+     (let* ((lay (cdr la))
+            (lby (cdr lb))
             (next-y (/ (- lby lay) (abs (- lby lay)))))
        (let loop ((y lay))
          (let ((lx (line-lerp-y->x la lb y))
