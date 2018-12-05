@@ -30,7 +30,7 @@
         (bx (car b))
         (by (cadr b)))
     (let ((t (/ (- y ay) (- by ay))))
-      (exact (floor (lerp ax bx t))))))
+      (inexact->exact (floor (lerp ax bx t))))))
 
 ;; edges
 

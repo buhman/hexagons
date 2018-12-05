@@ -1,5 +1,3 @@
-(use numbers)
-
 ;; tile
 
 (define-record-type tile
@@ -84,7 +82,7 @@
        +axes+))
 
 (define (cube-nearest cube)
-  (let* ((relt (map (compose exact round) cube))
+  (let* ((relt (map (compose inexact->exact round) cube))
          (delt (map (lambda (r c) (abs (- r c))) relt cube)))
     (let-values (((q r s) (apply values relt))
                  ((dq dr ds) (apply values delt)))
@@ -127,7 +125,7 @@
 (define (cube-path-lerp path t)
   (let* ((steps (length path))
          (step (* t (sub1 steps)))
-         (fstep (exact (floor step)))
+         (fstep (inexact->exact (floor step)))
          (a (list-ref path fstep))
          (b (list-ref path (add1 fstep))))
     (cube-lerp a b (- step fstep))))
