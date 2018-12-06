@@ -61,10 +61,15 @@
        (`(chat . (message . ,alist))
         (broadcast-message (make-chat-message-id thread-id alist)))
        (`(token . (move . ,alist))
+        (broadcast-message msg))
+       (`(tile . (create . ,alist))
+        (broadcast-message msg))
+       (`(tile . (delete . ,alist))
         (broadcast-message msg))))
     (`(command . ,type)
      (match type
        (`(log . (replay . ()))
+        (print "replay requested by: " thread-id)
         (event-log-replay! out)))
      ;; commands never mutate the event log
      #f)))

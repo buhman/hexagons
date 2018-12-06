@@ -211,10 +211,10 @@
            (corner (corner-rays visible edges))
            (sorted (sort (append visible corner) (angle-compare <)))
            (quads (rays->quads sorted)))
-      (render-draw-lighting-quads! renderer quads)
+      (render-draw-lighting-quads! renderer quads))))
 
       ;(render-draw-ray-quads-debug! renderer quads))))
-      (render-draw-rays-debug! renderer sorted))))
+      ;(render-draw-rays-debug! renderer sorted))))
       ;(render-draw-color-order-debug! renderer))))
 
 ;; drawing

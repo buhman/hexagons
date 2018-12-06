@@ -66,5 +66,5 @@
 (define (animator-list-update! ticks)
   (set! *animators* (animators-update! ticks *animators*)))
 
-(define (append-token-animator! animator)
+(define (append-animator! animator)
   (set! *animators* (append *animators* (list animator))))

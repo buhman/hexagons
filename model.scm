@@ -1,4 +1,4 @@
-;; synchronized/game state
+;; synchronized: game state
 
 (define-record-type game-state
   (make-state tiles tokens port)
@@ -9,6 +9,14 @@
   (tokens state-tokens (setter state-tokens))
   ;; PORT or #f
   (port state-port (setter state-port)))
+
+;; unsynchronized: editor state
+
+(define-record-type editor-state
+  (make-editor mode)
+  editor?
+  ;; 'tile 'token
+  (mode editor-mode (setter editor-mode)))
 
 ;; tile
 

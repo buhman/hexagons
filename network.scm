@@ -22,7 +22,8 @@
     (`(event . ,type)
      (match type
        (`(chat . ,evt) (chat-handle-event! evt))
-       (`(token . ,evt) (token-handle-event! evt))))
+       (`(token . ,evt) (token-handle-event! evt))
+       (`(tile . ,evt) (tile-handle-event! evt))))
     (`(client . ,type)
      (match type
        (`(disconnect . ()) (handle-disconnect!))
@@ -53,8 +54,23 @@
    (sdl2:color->list (token-color token))))
 
 (define (list->token l)
-  (let-values (((cube id color) (apply values l)))
-    (make-token cube id (apply sdl2:make-color color))))
+  (match l
+    ((cube id color)
+     (make-token cube id (apply sdl2:make-color color)))))
+
+(define (tile->list tile)
+  (list
+   (tile-cube tile)
+   (sdl2:color->list (tile-color tile))
+   (tile-pathable? tile)
+   (tile-visible? tile)))
+
+(define (list->tile l)
+  (match l
+    ((cube color pathable visible)
+     (make-tile cube (apply sdl2:make-color color) pathable visible))))
+
+;; synchronized-state messages
 
 (define (make-chat-message text)
   `(event chat message (text . ,text)))

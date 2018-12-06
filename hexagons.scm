@@ -38,6 +38,7 @@
 (include "path.scm")
 (include "network.scm")
 (include "token.scm")
+(include "tile.scm")
 (include "animator.scm")
 (include "lighting.scm")
 
@@ -68,16 +69,16 @@
 (define assoc/cdr
   (compose cdr assoc))
 
-(define *state* (make-parameter #f))
+;; state locals
 
-;; grip
+(define *state* (make-parameter #f)) ; synchronized
+(define *editor* (make-parameter (make-editor 'tile))) ; unsynchronized
+
+;; state globals
+;; - these should probably become parameters as well
 
 (define *grip* (make-grip 0 0 0 0 60))
-
-;; selector
-
 (define *selector* (make-selector '(0 0 0) #f))
-
 (define *mouse* #f)
 
 ;; window / renderer
@@ -114,10 +115,12 @@
        (animator-list-update! (sdl2:get-ticks))
 
        (render-scene! *renderer*)
+
        (render-chat! *renderer*)
 
-       (render-fps! *renderer* (- (sdl2:get-ticks) ticks))
        (render-network-state! *renderer*)
+       (render-editor-state! *renderer*)
+       (render-fps! *renderer* (- (sdl2:get-ticks) ticks))
 
        (sdl2:render-present! *renderer*)
        (sdl2:delay! 20)

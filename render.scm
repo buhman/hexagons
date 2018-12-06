@@ -133,7 +133,7 @@
     (let ((w (sdl2:texture-w texture))
           (h (sdl2:texture-h texture)))
       (case pos
-        ;((top-center) (R (pos-center rw w) (pos-center rh h) w h))
+        ((top-center) (R (pos-center rw w) 0 w h))
         ((top-left) (R 0 0 w h))
         ((bottom-right) (R (- rw w) (- rh h) w h))))))
 
@@ -155,3 +155,9 @@
          (text (if port "connected" "disconnected"))
          (color (if port +green+ +red+)))
     (render-status-text! renderer text color 'bottom-right)))
+
+;; editor-state
+
+(define (render-editor-state! renderer)
+  (let* ((state (editor-mode (*editor*))))
+    (render-status-text! renderer (symbol->string state) +white+ 'top-center)))

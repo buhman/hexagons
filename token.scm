@@ -7,7 +7,7 @@
              (path (reverse rpath))
              (duration (* +ms-per-node+ (length path))))
     ;; create a new animator to show the motion
-    (append-token-animator! (make-token-path-animator #f duration path a))
+    (append-animator! (make-token-path-animator #f duration path a))
     ;; move the selector with the token, if its previous focus was this token
     (let ((s-cube (selector-focus-tile *selector*)))
       (when (equal? s-cube a)
@@ -22,4 +22,4 @@
 
 (define (token-handle-event! evt)
   (match evt
-    (`(move . ,(alist .())) (token-handle-move-event! alist))))
+    (`(move . ,(alist . ())) (token-handle-move-event! alist))))
