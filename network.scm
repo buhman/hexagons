@@ -13,7 +13,8 @@
 (define (handle-queue-events! event-queue)
   (let loop ()
     (when (not (mailbox-empty? event-queue))
-      (mailbox-receive! event-queue)
+      (let ((msg (mailbox-receive! event-queue)))
+        (dispatch-message msg))
       (loop))))
 
 (define (dispatch-message msg)
@@ -21,7 +22,25 @@
     (`(event . ,type)
      (match type
        (`(chat . ,evt) (chat-handle-event! evt))
-       (`(token . ,evt) (token-handle-event! evt))))))
+       (`(token . ,evt) (token-handle-event! evt))))
+    (`(client . ,type)
+     (match type
+       (`(disconnect . ()) (handle-disconnect!))
+       (`(reconnect . ,(alist . ())) (handle-reconnect! alist))))))
+
+
+(define (handle-disconnect!)
+  (print "disconnected")
+  ;; port is now invalid
+  (set! (state-port (*state*)) #f))
+
+(define (handle-reconnect! alist)
+  (print "reconnected")
+  (let ((port (assoc/cdr 'port alist)))
+    ;; our state is now invalid, reset it while setting port
+    (set! (*state*) (make-state '() '() port))
+    ;; immediately request a log replay
+    (write '(command log replay) port)))
 
 ;; model
 
@@ -53,3 +72,18 @@
 
 (define (make-tile-delete-event cube)
   `(event tile delete ((cube . ,cube))))
+
+;; client events, from the network thread
+
+(define (make-client-reconnect-event port)
+  `(client reconnect ((port . ,port))))
+
+(define (make-client-disconnect-event)
+  `(client disconnect))
+
+;; output port handling
+
+(define (send-server-message! msg)
+  (let ((port (state-port (*state*))))
+    (when port
+      (write msg port))))

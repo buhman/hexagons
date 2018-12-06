@@ -6,7 +6,7 @@
 (define (chat-handle-input-text s)
   (set! *input-buffer* (cons s *input-buffer*)))
 
-(define (chat-handle-key sym out)
+(define (chat-handle-key sym)
   (case sym
     ((backspace)
      (match *input-buffer*
@@ -18,7 +18,7 @@
        (_
         (let* ((text (input-buffer->string *input-buffer*))
                (msg (make-chat-message text)))
-          (write msg out))
+          (send-server-message! msg))
         (set! *input-buffer* '()))))))
 
 (define *chat-history* '())

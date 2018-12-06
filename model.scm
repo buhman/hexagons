@@ -1,12 +1,14 @@
 ;; synchronized/game state
 
 (define-record-type game-state
-  (make-state tiles tokens)
+  (make-state tiles tokens port)
   state?
   ;; alist: '((cube . tile) ...)
   (tiles state-tiles (setter state-tiles))
   ;; alist: '((cube . token) ...)
-  (tokens state-tokens (setter state-tokens)))
+  (tokens state-tokens (setter state-tokens))
+  ;; PORT or #f
+  (port state-port (setter state-port)))
 
 ;; tile
 

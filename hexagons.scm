@@ -103,12 +103,12 @@
 
 ;; game event loop
 
-(define (event-loop out event-queue)
+(define (event-loop event-queue)
   (call/cc
    (lambda (exit-loop!)
      (let loop ((ticks (sdl2:get-ticks)))
        (sdl2:pump-events!)
-       (handle-events! exit-loop! out)
+       (handle-events! exit-loop!)
        (handle-queue-events! event-queue)
 
        (animator-list-update! (sdl2:get-ticks))
@@ -127,12 +127,16 @@
 
 (tcp-read-timeout #f)
 
-(define (network-loop in event-queue)
-  (let handle-next-message ()
-    (when (and (not (port-closed? in))
-               (handle-message in event-queue))
-      (thread-yield!)
-      (handle-next-message event-queue)))
+(define (network-loop event-queue)
+  (let-values (((in out) (tcp-connect +hostname+ +port+)))
+    ;; inform the game thread we have a new port
+    (print "reconnect-event")
+    (mailbox-send! event-queue (make-client-reconnect-event out))
+    (let handle-next-message ()
+      (when (and (not (port-closed? in))
+                 (handle-message in event-queue))
+        (thread-yield!)
+        (handle-next-message))))
   (print "network loop exit"))
 
 ;; client
@@ -143,17 +147,15 @@
 (define *debug-state* #f)
 
 (define (game-client)
-  (let-values (((in out) (tcp-connect +hostname+ +port+)))
-    (write '(command log replay) out)
-    (let* ((event-queue (make-mailbox))
-           (net-thread (thread-start! (lambda () (network-loop in event-queue)))))
-      (dynamic-wind
-          (lambda ()
-            (set! (*state*) (make-state '() '()))
-            ;; give us a way to hack at state
-            (set! *debug-state* (*state*)))
-          (lambda () (event-loop out event-queue))
-          (lambda () (thread-terminate! net-thread))))))
+  (let* ((event-queue (make-mailbox))
+         (net-thread (thread-start! (lambda () (network-loop event-queue)))))
+    (dynamic-wind
+        (lambda ()
+          (set! (*state*) (make-state '() '() #f))
+          ;; give us a way to hack at state
+          (set! *debug-state* (*state*)))
+        (lambda () (event-loop event-queue))
+        (lambda () (thread-terminate! net-thread)))))
 
 ;; background thread
 

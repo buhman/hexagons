@@ -21,15 +21,15 @@
     (set! (selector-focus-tile *selector*) (and token cube))))
 
 ;; server-side
-(define (event-token-move! ev out)
+(define (event-token-move! ev)
   (let* ((cube (mouse-button-event->cube *grip* ev))
          (tokens (state-tokens (*state*)))
          (token (assoc (selector-focus-tile *selector*) tokens)))
     (when token
       (let ((msg (make-token-move-event (cdr token) cube)))
-        (write msg out)))))
+        (send-server-message! msg)))))
 
-(define (handle-event! ev exit-loop! out)
+(define (handle-event! ev exit-loop!)
   (case (sdl2:event-type ev)
     ((quit)
      (print "quit")
@@ -40,7 +40,7 @@
      (set! *mouse* #f))
 
     ((key-down)
-     (chat-handle-key (sdl2:keyboard-event-sym ev) out))
+     (chat-handle-key (sdl2:keyboard-event-sym ev)))
      ;(print 'key-down " " (sdl2:keyboard-event-sym ev)))
 
     ((key-up))
@@ -57,7 +57,7 @@
        ((left)
         (event-token-select! ev))
        ((right)
-        (event-token-move! ev out))))
+        (event-token-move! ev))))
 
     ((mouse-motion)
      (set! *mouse* (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
@@ -82,9 +82,9 @@
          #f
          (set! (grip-scale *grip*) new-scale))))))
 
-(define (handle-events! exit-loop! out)
+(define (handle-events! exit-loop!)
   (cond
    ((sdl2:has-events?)
     (begin
-      (handle-event! (sdl2:poll-event!) exit-loop! out)
-      (handle-events! exit-loop! out)))))
+      (handle-event! (sdl2:poll-event!) exit-loop!)
+      (handle-events! exit-loop!)))))
