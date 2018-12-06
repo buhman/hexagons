@@ -21,8 +21,10 @@
         (ay (cdr a))
         (bx (car b))
         (by (cdr b)))
-    (let ((t (/ (- y ay) (- by ay))))
-      (inexact->exact (floor (lerp ax bx t))))))
+    (if (= 0 (- by ay))
+      ax
+      (let ((t (/ (- y ay) (- by ay))))
+        (inexact->exact (floor (lerp ax bx t)))))))
 
 ;; edges
 
@@ -99,7 +101,9 @@
     ;; or, possibly has horizontal edges?
     (match int-xs
       ((x) (list x x y))
-      ((xa xb) (list xa xb y)))))
+      ((xa xb) (list xa xb y))
+      ;; hack
+      ((xa xb _) (list xa xb y)))))
 
 (define (trapezoid-decompose edges)
   (let* ((y-values (edge-unique-y-values edges))

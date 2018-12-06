@@ -104,8 +104,8 @@
    (map TU '((0 2)
              (1 1)
              (2 2)
-             (1 3)
-             (0 3)))))
+             (1 3)))))
+             ;(0 3)))))
 
 (define (T axial id color)
   (let ((cube (axial->cube axial)))
@@ -122,7 +122,7 @@
 
 ;; selector
 
-(define *selector* (make-selector '(0 0 0) '(0 0 0)))
+(define *selector* (make-selector '(0 0 0) #f))
 
 (define *mouse* '(0 . 0))
 
