@@ -49,8 +49,8 @@
              (db1 (point-distance center b1))
              (db2 (point-distance center b2)))
          ;; we want the lowest distance point to win
-         (let ((da (min da1 da2))
-               (db (min db1 db2)))
+         (let ((da (max da1 da2))
+               (db (max db1 db2)))
            (cmp da db)))))))
 
 (define (obstruction-edges center points-list)
