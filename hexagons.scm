@@ -6,7 +6,8 @@
      matchable
      section-combinators
      tcp6
-     clojurian-syntax)
+     clojurian-syntax
+     mailbox)
 
 ;; aliases
 
@@ -67,54 +68,7 @@
 (define assoc/cdr
   (compose cdr assoc))
 
-;; tiles/scene
-
-(define (tile-alist axial color pathable)
-  (let ((cube (axial->cube axial)))
-    (cons
-     cube
-     (make-tile cube color pathable))))
-
-(define (TP axial)
-  (tile-alist axial +white+ #t))
-
-(define (TU axial)
-  (tile-alist axial +blue+ #f))
-
-(define +tiles+
-  (append
-   (map TP '((0 0)
-             (1 0)
-             (0 1)
-             (1 2)
-             (2 0)
-             (4 1)
-             (3 1)
-             (3 0)
-             (5 3)
-             (2 3)
-             (3 2)
-             (0 4)
-             (1 4)
-             (-1 4)
-             (2 1)
-             (4 0)
-             (-1 5)
-             (-2 5)))
-   (map TU '((0 2)
-             (1 1)
-             (2 2)
-             (1 3)))))
-             ;(0 3)))))
-
-(define (T axial id color)
-  (let ((cube (axial->cube axial)))
-    (cons cube (make-token cube id color))))
-
-(define *tokens*
-  (list
-   (T '(0 0) 'orange +orange+)
-   (T '(1 0) 'magenta +magenta+)))
+(define *state* (make-parameter #f))
 
 ;; grip
 
@@ -149,17 +103,17 @@
 
 ;; game event loop
 
-(define (event-loop out)
+(define (event-loop out event-queue)
   (call/cc
    (lambda (exit-loop!)
      (let loop ((ticks (sdl2:get-ticks)))
        (sdl2:pump-events!)
        (handle-events! exit-loop! out)
+       (handle-queue-events! event-queue)
 
        (animator-list-update! (sdl2:get-ticks))
 
        (render-scene! *renderer*)
-       (render-lighting! *renderer* *grip*)
        (render-chat! *renderer*)
 
        (render-fps! *renderer* (- (sdl2:get-ticks) ticks))
@@ -173,12 +127,12 @@
 
 (tcp-read-timeout #f)
 
-(define (network-loop in)
+(define (network-loop in event-queue)
   (let handle-next-message ()
     (when (and (not (port-closed? in))
-               (handle-message in))
+               (handle-message in event-queue))
       (thread-yield!)
-      (handle-next-message)))
+      (handle-next-message event-queue)))
   (print "network loop exit"))
 
 ;; client
@@ -189,9 +143,12 @@
 (define (game-client)
   (let-values (((in out) (tcp-connect +hostname+ +port+)))
     (write '(command log replay) out)
-    (let ((net-thread (thread-start! (lambda () (network-loop in)))))
-      (event-loop out)
-      (thread-terminate! net-thread))))
+    (let* ((event-queue (make-mailbox))
+           (net-thread (thread-start! (lambda () (network-loop in event-queue)))))
+      (dynamic-wind
+          (lambda () (set! (*state*) (make-state '() '())))
+          (lambda () (event-loop out event-queue))
+          (lambda () (thread-terminate! net-thread))))))
 
 ;; background thread
 

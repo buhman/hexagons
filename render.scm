@@ -42,11 +42,11 @@
          (color (select-color base-color selected?)))
     (render-hex-cube! renderer scale cube color ht)))
 
-(define (render-tiles! renderer scale)
+(define (render-tiles! renderer scale tiles)
   (let-values (((bg fg) (partition (lambda (tile)
                                      (not (equal? (tile-cube tile)
                                                   (selector-hover-tile *selector*))))
-                                   (map cdr +tiles+)))
+                                   (map cdr tiles)))
                ((ht) (hexagon-trapezoids scale)))
     (for-each
      (lambda (tile) (render-tile! renderer scale #f tile ht))
@@ -62,20 +62,20 @@
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
       (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) (cube-line a b))))))
 
-(define (render-flood-path! renderer scale)
+(define (render-flood-path! renderer scale tiles)
   (let* ((a (selector-focus-tile *selector*))
          (b (selector-hover-tile *selector*)))
     (when (and a b (not (equal? a b)))
-      (let* ((node-graph (flood-search a +tiles+ tile-neighbors))
+      (let* ((node-graph (flood-search a tiles tile-neighbors))
              (node-path (flood-path a b node-graph)))
         (when node-path
           (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
           (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) node-path)))))))
 
-(define (render-neighbors! renderer scale)
+(define (render-neighbors! renderer scale tiles)
   (let* ((cube (selector-hover-tile *selector*))
          (ll (map (lambda (n) (list (cube->point *grip* cube) (cube->point *grip* n)))
-                  (tile-neighbors cube +tiles+))))
+                  (tile-neighbors cube tiles))))
     (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +yellow+ +darkgrey+))
     (for-each
      (lambda (lines) (render-draw-lines! renderer lines))
@@ -99,10 +99,10 @@
        (set! (sdl2:render-draw-color renderer) color)
        (sdl2:render-fill-rect! renderer (R (- x half-side) (- y half-side) scale scale))))))
 
-(define (render-tokens! renderer scale)
+(define (render-tokens! renderer scale tokens)
   (for-each
    (lambda (token) (render-token! renderer scale token))
-   (map cdr *tokens*)))
+   (map cdr tokens)))
 
 ;; scene
 
@@ -111,13 +111,17 @@
   (set! (sdl2:render-draw-blend-mode *renderer*) 'blend)
   (sdl2:render-clear! *renderer*)
 
-  (let ((scale (grip-scale *grip*)))
-    (render-tiles! renderer scale)
-    ;(render-neighbors! renderer scale)
+  (let ((tiles (state-tiles (*state*)))
+        (tokens (state-tokens (*state*)))
+        (scale (grip-scale *grip*)))
+    (render-tiles! renderer scale tiles)
+    ;(render-neighbors! renderer scale tiles)
     (render-linear-path! renderer scale)
-    (render-flood-path! renderer scale)
+    (render-flood-path! renderer scale tiles)
 
-    (render-tokens! renderer scale)))
+    (render-tokens! renderer scale tokens)
+
+    (render-lighting! renderer *grip* tiles)))
 
 ;; fps
 

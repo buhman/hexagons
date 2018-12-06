@@ -1,3 +1,13 @@
+;; synchronized/game state
+
+(define-record-type game-state
+  (make-state tiles tokens)
+  state?
+  ;; alist: '((cube . tile) ...)
+  (tiles state-tiles (setter state-tiles))
+  ;; alist: '((cube . token) ...)
+  (tokens state-tokens (setter state-tokens)))
+
 ;; tile
 
 (define-record-type tile

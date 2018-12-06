@@ -1,17 +1,27 @@
+;; network thread
+
+(define (handle-message in event-queue)
+  (let ((msg (read in)))
+    (case msg
+      ((#!eof) #f)
+      (else
+       (mailbox-send! event-queue msg)
+       #t))))
+
+;; mailbox / game thread
+
+(define (handle-queue-events! event-queue)
+  (let loop ()
+    (when (not (mailbox-empty? event-queue))
+      (mailbox-receive! event-queue)
+      (loop))))
+
 (define (dispatch-message msg)
   (match msg
     (`(event . ,type)
      (match type
        (`(chat . ,evt) (chat-handle-event! evt))
        (`(token . ,evt) (token-handle-event! evt))))))
-
-(define (handle-message in)
-  (let ((msg (read in)))
-    (case msg
-      ((#!eof) #f)
-      (else
-       (dispatch-message msg)
-       #t))))
 
 ;; model
 

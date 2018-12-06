@@ -13,8 +13,8 @@
           (cons x y)
           (cons 0 y))))
 
-(define (obstruction-points renderer grip)
-  (let loop ((tiles +tiles+))
+(define (obstruction-points renderer grip tiles)
+  (let loop ((tiles tiles))
     (match tiles
       ((tile . rest)
        (match tile
@@ -199,12 +199,10 @@
          rh)))
    rays))
 
-(define *off-rays* '())
-
 ;; render
 
-(define (render-lighting! renderer grip)
-  (let* ((points-list (obstruction-points renderer grip))
+(define (render-lighting! renderer grip tiles)
+  (let* ((points-list (obstruction-points renderer grip tiles))
          (center *mouse*)
          (edges (obstruction-edges center points-list))
          (rays (points->rays center points-list)))
@@ -212,10 +210,10 @@
            (corner (corner-rays visible edges))
            (sorted (sort (append visible corner) (angle-compare <)))
            (quads (rays->quads sorted)))
-      (render-draw-lighting-quads! renderer quads))))
+      (render-draw-lighting-quads! renderer quads)
 
       ;(render-draw-ray-quads-debug! renderer quads))))
-      ;(render-draw-rays-debug! renderer sorted)
+      (render-draw-rays-debug! renderer sorted))))
       ;(render-draw-color-order-debug! renderer))))
 
 ;; drawing

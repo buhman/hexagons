@@ -1,7 +1,8 @@
 (define +ms-per-node+ 250)
 
 (define (token-move! a b)
-  (and-let* ((sg (flood-search a +tiles+ tile-neighbors))
+  (and-let* ((tiles (state-tiles (*state*)))
+             (sg (flood-search a tiles tile-neighbors))
              (rpath (flood-path a b sg))
              (path (reverse rpath))
              (duration (* +ms-per-node+ (length path))))

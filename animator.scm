@@ -12,20 +12,25 @@
 
 (define (token-path-animator path cube)
   (lambda (t)
-    (let* ((token (assoc/cdr cube *tokens*))
+    (let* ((tokens (state-tokens (*state*)))
+           (token (assoc/cdr cube tokens))
            (new-cube (cube-path-lerp path t))
            (new-token (make-token new-cube (token-id token) (token-color token))))
-      (set! *tokens* (alist-update cube new-token *tokens* equal?)))))
+      ;; update token-cube, but do not change alist cube
+      (set! (state-tokens (*state*))
+        (alist-update cube new-token tokens equal?)))))
 
 (define (token-end path cube)
   (lambda ()
-    (let* ((token (assoc/cdr cube *tokens*))
+    (let* ((tokens (state-tokens (*state*)))
+           (token (assoc/cdr cube tokens))
            (b (last path))
            (new-token (make-token b (token-id token) (token-color token))))
-      (set! *tokens*
-        (->> *tokens*
-             (alist-delete cube)
-             (alist-cons b new-token))))))
+      ;; update the token-cube with the final position, and update alist cube
+      (set! (state-tokens (*state*))
+        (->> tokens
+          (alist-delete cube)
+          (alist-cons b new-token))))))
 
 (define (make-token-path-animator epoch duration path cube)
   (make-animator

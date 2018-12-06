@@ -16,13 +16,15 @@
 ;; client-side
 (define (event-token-select! ev)
   (let* ((cube (mouse-button-event->cube *grip* ev))
-         (token (assoc cube *tokens*)))
+         (tokens (state-tokens (*state*)))
+         (token (assoc cube tokens)))
     (set! (selector-focus-tile *selector*) (and token cube))))
 
 ;; server-side
 (define (event-token-move! ev out)
   (let* ((cube (mouse-button-event->cube *grip* ev))
-         (token (assoc (selector-focus-tile *selector*) *tokens*)))
+         (tokens (state-tokens (*state*)))
+         (token (assoc (selector-focus-tile *selector*) tokens)))
     (when token
       (let ((msg (make-token-move-event (cdr token) cube)))
         (write msg out)))))
