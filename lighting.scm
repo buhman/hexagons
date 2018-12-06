@@ -19,7 +19,7 @@
       ((tile . rest)
        (match tile
          ((cube . tile)
-          (if (not (tile-pathable? tile))
+          (if (not (tile-visible? tile))
             (let* ((point (cube->point grip cube))
                    (scale (grip-scale grip))
                    (points (hexagon-points (car point) (cdr point) scale)))

@@ -13,11 +13,12 @@
 ;; tile
 
 (define-record-type tile
-  (make-tile cube color pathable)
+  (make-tile cube color pathable visible)
   tile?
   (cube tile-cube)
   (color tile-color)
-  (pathable tile-pathable?))
+  (pathable tile-pathable?)
+  (visible tile-visible?))
 
 ;; grip
 

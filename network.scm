@@ -28,6 +28,7 @@
        (`(disconnect . ()) (handle-disconnect!))
        (`(reconnect . ,(alist . ())) (handle-reconnect! alist))))))
 
+;; disconnect handlers
 
 (define (handle-disconnect!)
   (when (not (state-port (*state*)))
