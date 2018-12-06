@@ -78,7 +78,7 @@
 
 (define *selector* (make-selector '(0 0 0) #f))
 
-(define *mouse* '(0 . 0))
+(define *mouse* #f)
 
 ;; window / renderer
 
@@ -140,13 +140,18 @@
 (define +hostname+ "localhost")
 (define +port+ 4242)
 
+(define *debug-state* #f)
+
 (define (game-client)
   (let-values (((in out) (tcp-connect +hostname+ +port+)))
     (write '(command log replay) out)
     (let* ((event-queue (make-mailbox))
            (net-thread (thread-start! (lambda () (network-loop in event-queue)))))
       (dynamic-wind
-          (lambda () (set! (*state*) (make-state '() '())))
+          (lambda ()
+            (set! (*state*) (make-state '() '()))
+            ;; give us a way to hack at state
+            (set! *debug-state* (*state*)))
           (lambda () (event-loop out event-queue))
           (lambda () (thread-terminate! net-thread))))))
 

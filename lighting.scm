@@ -203,7 +203,8 @@
 
 (define (render-lighting! renderer grip tiles)
   (let* ((points-list (obstruction-points renderer grip tiles))
-         (center *mouse*)
+         ;; hack; should be removed when lighting no longer follows mouse
+         (center (or *mouse* '(0 . 0)))
          (edges (obstruction-edges center points-list))
          (rays (points->rays center points-list)))
     (let* ((visible (filter (lambda (r) (ray-cast r edges)) rays))

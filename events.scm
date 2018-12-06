@@ -35,6 +35,10 @@
      (print "quit")
      (exit-loop! #t))
 
+    ((window)
+     ;; invalidate mouse
+     (set! *mouse* #f))
+
     ((key-down)
      (chat-handle-key (sdl2:keyboard-event-sym ev) out))
      ;(print 'key-down " " (sdl2:keyboard-event-sym ev)))
