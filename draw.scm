@@ -12,6 +12,12 @@
             ((= y lby))
             (else (loop (+ y next-y))))))))))
 
+(define (render-draw-trapezoids! renderer traps)
+  (for-each
+   (lambda (t)
+     (render-draw-trapezoid! renderer t))
+   traps))
+
 (define (render-draw-polygon! renderer edges)
   (let ((ts (trapezoid-decompose edges)))
     (for-each

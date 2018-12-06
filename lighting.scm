@@ -6,14 +6,14 @@
      (cons center point))
    (flatten points-list)))
 
-(define (viewport-points)
-  (let-values (((x y) (sdl2:renderer-output-size *renderer*)))
+(define (viewport-points renderer)
+  (let-values (((x y) (sdl2:renderer-output-size renderer)))
     (list (cons 0 0)
           (cons x 0)
           (cons x y)
           (cons 0 y))))
 
-(define (obstruction-points grip)
+(define (obstruction-points renderer grip)
   (let loop ((tiles +tiles+))
     (match tiles
       ((tile . rest)
@@ -26,7 +26,7 @@
               (cons points (loop rest)))
             (loop rest)))))
       ;; append the viewport to get a closed area
-      (() (list (viewport-points))))))
+      (() (list (viewport-points renderer))))))
 
 (define (points-list->edges points-list)
   (flatten (map points->edges points-list)))
@@ -90,7 +90,6 @@
            (and (eq? oi 'colinear)
                 (line-on-segment? b1 a2 b2)))))))
 
-;; (ray-intersect-edge ray edge)
 (define (ray-intersect-edge ray edge)
   (match (list ray edge)
     ((((ax1 . ay1) . (ax2 . ay2))
@@ -158,8 +157,11 @@
           (tb (angle b)))
       (cmp ta tb))))
 
+(define +shadow-fill+ (C 10 10 10 255))
+(define +shadow-visible+ (C 0 0 0 0))
+
 (define (render-lighting! renderer grip)
-  (let* ((points-list (obstruction-points grip))
+  (let* ((points-list (obstruction-points renderer grip))
          (center *mouse*)
          (edges (obstruction-edges center points-list))
          (rays (points->rays center points-list)))
@@ -167,9 +169,29 @@
            (sorted (sort visible (angle-compare <)))
            (quads (rays->quads sorted)))
 
-      (render-draw-ray-quads-debug! renderer quads)
-      (render-draw-rays-debug! renderer sorted)
-      (render-draw-color-order-debug! renderer))))
+      (render-draw-lighting-quads! renderer quads))))
+
+      ;(render-draw-ray-quads-debug! renderer quads)
+      ;(render-draw-rays-debug! renderer sorted)
+      ;(render-draw-color-order-debug! renderer))))
+
+(define (render-draw-lighting-quads! renderer quads)
+  (let*-values (((w h) (sdl2:renderer-output-size renderer))
+                ((texture) (sdl2:create-texture renderer 'rgba8888 'target w h)))
+    (set! (sdl2:render-target renderer) texture)
+    (set! (sdl2:render-draw-blend-mode *renderer*) 'none)
+
+    (set! (sdl2:render-draw-color renderer) +shadow-fill+)
+    (sdl2:render-fill-rect! renderer (R 0 0 w h))
+
+    (set! (sdl2:render-draw-color renderer) +shadow-visible+)
+    (render-draw-trapezoids! renderer quads)
+
+    (set! (sdl2:render-target renderer) #f)
+    (set! (sdl2:texture-blend-mode texture) 'blend)
+    (set! (sdl2:render-draw-blend-mode *renderer*) 'blend)
+
+    (sdl2:render-copy! renderer texture)))
 
 (define (hue->rgb h)
   (let ((r (- (abs (- 3 (* h 6))) 1))
