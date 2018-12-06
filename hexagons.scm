@@ -117,6 +117,7 @@
        (render-chat! *renderer*)
 
        (render-fps! *renderer* (- (sdl2:get-ticks) ticks))
+       (render-network-state! *renderer*)
 
        (sdl2:render-present! *renderer*)
        (sdl2:delay! 20)

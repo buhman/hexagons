@@ -125,10 +125,33 @@
 
 ;; fps
 
+(define (pos-center rc c)
+  (exact/round (- (/ rc 2) (/ c 2))))
+
+(define (status-position-rect renderer texture pos)
+  (let-values (((rw rh) (sdl2:renderer-output-size renderer)))
+    (let ((w (sdl2:texture-w texture))
+          (h (sdl2:texture-h texture)))
+      (case pos
+        ;((top-center) (R (pos-center rw w) (pos-center rh h) w h))
+        ((top-left) (R 0 0 w h))
+        ((bottom-right) (R (- rw w) (- rh h) w h))))))
+
+(define (render-status-text! renderer text color pos)
+  (let* ((surface (ttf:render-text-solid *font* text color))
+         (texture (sdl2:create-texture-from-surface renderer surface))
+         (dest-rect (status-position-rect renderer texture pos)))
+    (sdl2:render-copy! renderer texture #f dest-rect)))
+
 (define (render-fps! renderer dt)
-  (let* (;(fps (round (* (/ 1 dt) 1000)))
-         (surface (ttf:render-text-solid *font* (number->string dt) +white+))
-         (texture (sdl2:create-texture-from-surface *renderer* surface))
-         (w (sdl2:texture-w texture))
-         (h (sdl2:texture-h texture)))
-    (sdl2:render-copy! renderer texture #f (R 0 0 w h))))
+  (let (#;
+        (fps (round (* (/ 1 dt) 1000))))
+    (render-status-text! renderer (number->string dt) +white+ 'top-left)))
+
+;; connect-state
+
+(define (render-network-state! renderer)
+  (let* ((port (state-port (*state*)))
+         (text (if port "connected" "disconnected"))
+         (color (if port +green+ +red+)))
+    (render-status-text! renderer text color 'bottom-right)))

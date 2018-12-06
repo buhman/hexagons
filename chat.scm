@@ -31,7 +31,7 @@
 (define +chat-lines+ 5)
 
 (define (input-buffer-rect renderer x-offset line-width line-height line-num)
-  (let-values (((rw rh) (sdl2:renderer-output-size *renderer*)))
+  (let-values (((rw rh) (sdl2:renderer-output-size renderer)))
     (let* ((padding (floor (/ line-height 2)))
            (line-space (floor (/ line-height 4)))
            ;; XXX: hacky
