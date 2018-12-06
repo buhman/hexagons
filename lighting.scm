@@ -31,21 +31,27 @@
 (define (points-list->edges points-list)
   (flatten (map points->edges points-list)))
 
-(define (edge-center edge)
-  (match edge
-    (((xa . ya) . (xb . yb))
-     (cons (exact/round (/ (+ xa xb) 2))
-           (exact/round (/ (+ ya yb) 2))))))
-
 (define (point-distance a b)
   (let ((dx (- (car a) (car b)))
         (dy (- (cdr a) (cdr b))))
     (+ (* dx dx) (* dy dy))))
 
+(define (edge-length e)
+  (match e
+    ((a . b) (point-distance a b))))
+
 (define (edge-compare center cmp)
   (lambda (a b)
-    (cmp (point-distance center (edge-center a))
-         (point-distance center (edge-center b)))))
+    (match (cons a b)
+      (((a1 . a2) . (b1 . b2))
+       (let ((da1 (point-distance center a1))
+             (da2 (point-distance center a2))
+             (db1 (point-distance center b1))
+             (db2 (point-distance center b2)))
+         ;; we want the lowest distance point to win
+         (let ((da (min da1 da2))
+               (db (min db1 db2)))
+           (cmp da db)))))))
 
 (define (obstruction-edges center points-list)
   (let ((edges (points-list->edges points-list)))
@@ -157,8 +163,45 @@
           (tb (angle b)))
       (cmp ta tb))))
 
-(define +shadow-fill+ (C 10 10 10 255))
-(define +shadow-visible+ (C 0 0 0 0))
+;; ray offset
+
+(define +offset-theta+ 0.005)
+
+(define (ray-cast-interpolate ray edges)
+  (let loop ((es edges))
+    (match es
+      ((edge . rest)
+       (if (edges-intersect? ray edge)
+         (cons (car ray) (ray-intersect-edge ray edge))
+         (loop rest)))
+      (() #f))))
+
+(define (point-theta->edge xa ya theta)
+  (let ((xb (+ (* 5000 (cos theta)) xa))
+        (yb (+ (* 5000 (sin theta)) ya)))
+    (cons (cons xa ya)
+          (cons (exact/round xb) (exact/round yb)))))
+
+(define (corner-ray ray dt edges)
+  (match ray
+    (((xa . ya) . (xb . yb))
+     (let* ((theta (angle ray))
+            (interp (point-theta->edge xa ya (+ theta dt))))
+       (ray-cast-interpolate interp edges)))))
+
+(define (corner-rays rays edges)
+  (map
+   (lambda (ray)
+     (let ((rh (corner-ray ray (+ +offset-theta+) edges))
+           (rl (corner-ray ray (- +offset-theta+) edges)))
+       (if (> (edge-length rl) (edge-length rh))
+         rl
+         rh)))
+   rays))
+
+(define *off-rays* '())
+
+;; render
 
 (define (render-lighting! renderer grip)
   (let* ((points-list (obstruction-points renderer grip))
@@ -166,14 +209,19 @@
          (edges (obstruction-edges center points-list))
          (rays (points->rays center points-list)))
     (let* ((visible (filter (lambda (r) (ray-cast r edges)) rays))
-           (sorted (sort visible (angle-compare <)))
+           (corner (corner-rays visible edges))
+           (sorted (sort (append visible corner) (angle-compare <)))
            (quads (rays->quads sorted)))
-
       (render-draw-lighting-quads! renderer quads))))
 
-      ;(render-draw-ray-quads-debug! renderer quads)
+      ;(render-draw-ray-quads-debug! renderer quads))))
       ;(render-draw-rays-debug! renderer sorted)
       ;(render-draw-color-order-debug! renderer))))
+
+;; drawing
+
+(define +shadow-fill+ (C 10 10 10 255))
+(define +shadow-visible+ (C 0 0 0 0))
 
 (define (render-draw-lighting-quads! renderer quads)
   (let*-values (((w h) (sdl2:renderer-output-size renderer))
@@ -192,6 +240,8 @@
     (set! (sdl2:render-draw-blend-mode *renderer*) 'blend)
 
     (sdl2:render-copy! renderer texture)))
+
+;; debug drawing
 
 (define (hue->rgb h)
   (let ((r (- (abs (- 3 (* h 6))) 1))
