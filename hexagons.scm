@@ -129,16 +129,28 @@
 (tcp-read-timeout #f)
 
 (define (network-loop event-queue)
-  (let-values (((in out) (tcp-connect +hostname+ +port+)))
-    ;; inform the game thread we have a new port
-    (print "reconnect-event")
-    (mailbox-send! event-queue (make-client-reconnect-event out))
-    (let handle-next-message ()
-      (when (and (not (port-closed? in))
-                 (handle-message in event-queue))
-        (thread-yield!)
-        (handle-next-message))))
-  (print "network loop exit"))
+  (let reconnect ((sleep 5))
+    (mailbox-send! event-queue (make-client-disconnect-event))
+    (handle-exceptions exn
+        (begin
+          (print-error-message exn)
+          (case (get-condition-property exn 'exn 'location)
+            ((socket-connect)
+             (thread-sleep! sleep)
+             (reconnect 10))))
+      (let-values (((in out) (tcp-connect +hostname+ +port+)))
+        ;; inform the game thread we have a new port
+        (print "reconnect-event")
+        (mailbox-send! event-queue (make-client-reconnect-event out))
+        (let handle-next-message ()
+          (thread-yield!)
+          (if (and (not (port-closed? in))
+                   (handle-message in event-queue))
+            (handle-next-message)
+            (reconnect 5))))))
+
+  (mailbox-send! event-queue (make-client-disconnect-event))
+  (print "network loop exit!"))
 
 ;; client
 

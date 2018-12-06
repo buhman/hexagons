@@ -30,7 +30,8 @@
 
 
 (define (handle-disconnect!)
-  (print "disconnected")
+  (when (not (state-port (*state*)))
+    (print "disconnected"))
   ;; port is now invalid
   (set! (state-port (*state*)) #f))
 
