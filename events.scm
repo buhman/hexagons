@@ -28,7 +28,7 @@
     ('(visible pathable) +white+)
     ('(visible) +blue+)
     ('(pathable) +orange+)
-    ('() +magenta+)))
+    ('() +ultragrey+)))
 
 (define (alist->flags alist)
   (foldl
@@ -56,6 +56,19 @@
     (when (and tile (equal? (tile-cube tile) cube))
       (send-server-message! (make-tile-delete-event cube)))))
 
+(define (event-token-create! cube)
+  (let* ((token (make-token cube 'generic +cyan+))
+         (tl (token->list token))
+         (msg (make-token-create-event tl)))
+    (send-server-message! msg)))
+
+(define (event-token-delete! cube)
+  (let* ((tokens (state-tokens (*state*)))
+         (token (alist-ref cube tokens equal?)))
+    ;; try to filter obviously-invalid events
+    (when (and token (equal? (token-cube token) cube))
+      (send-server-message! (make-token-delete-event cube)))))
+
 ;; client-side handlers
 
 (define (event-token-select! cube)
@@ -74,7 +87,8 @@
      (let ((mode (editor-mode (*editor*))))
        (set! (editor-mode (*editor*))
          (case mode
-           ((tile) 'token)
+           ((tile) 'token-edit)
+           ((token-edit) 'token)
            ((token) 'tile)))))
     ; pathable
     ((p) (toggle-editor-tile-mode! 'pathable))
@@ -111,11 +125,13 @@
       ((left)
        (case mode
          ((token) (event-token-select! cube))
-         ((tile) (event-tile-create! cube))))
+         ((tile) (event-tile-create! cube))
+         ((token-edit) (event-token-create! cube))))
       ((right)
        (case mode
          ((token) (event-token-move! cube))
-         ((tile) (event-tile-delete! cube)))))))
+         ((tile) (event-tile-delete! cube))
+         ((token-edit) (event-token-delete! cube)))))))
 
 (define (handle-mouse-wheel! ev)
   (let ((new-scale (+ (grip-scale *grip*)

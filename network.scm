@@ -82,8 +82,8 @@
 (define (make-token-create-event token)
   `(event token create ((token . ,token))))
 
-(define (make-token-delete-event token)
-  `(event token delete ((token . ,token))))
+(define (make-token-delete-event cube)
+  `(event token delete ((cube . ,cube))))
 
 (define (make-tile-create-event tile)
   `(event tile create ((tile . ,tile))))

@@ -59,7 +59,7 @@
 (define +orange+ (C 255 128 0))
 (define +yellow+ (C 255 255 0))
 (define +green+ (C 0 255 0))
-(define +cyan+ (C 0 255 128))
+(define +cyan+ (C 0 255 255))
 (define +blue+ (C 0 0 255))
 (define +purple+ (C 255 0 255))
 (define +magenta+ (C 255 0 128))

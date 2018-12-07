@@ -13,6 +13,19 @@
       (when (equal? s-cube a)
         (set! (selector-focus-tile *selector*) b)))))
 
+(define (token-create token)
+  (lambda ()
+    (let ((tokens (state-tokens (*state*)))
+          (cube (token-cube token)))
+      (set! (state-tokens (*state*))
+        (alist-update cube token tokens equal?)))))
+
+(define (token-delete cube)
+  (lambda ()
+    (let ((tokens (state-tokens (*state*))))
+      (set! (state-tokens (*state*))
+        (alist-delete cube tokens equal?)))))
+
 (define (token-handle-move-event! alist)
   (let* ((tl (assoc/cdr 'token alist))
          (token (list->token tl))
@@ -20,6 +33,23 @@
          (b (assoc/cdr 'cube alist)))
     (token-move! a b)))
 
+(define (make-token-animator fn)
+  (make-animator
+   0
+   1
+   identity
+   fn))
+
+(define (token-handle-create-event! alist)
+  (let ((token (list->token (assoc/cdr 'token alist))))
+    (append-animator! (make-token-animator (token-create token)))))
+
+(define (token-handle-delete-event! alist)
+  (let ((cube (assoc/cdr 'cube alist)))
+    (append-animator! (make-token-animator (token-delete cube)))))
+
 (define (token-handle-event! evt)
   (match evt
-    (`(move . ,(alist . ())) (token-handle-move-event! alist))))
+    (`(move . ,(alist . ())) (token-handle-move-event! alist))
+    (`(create . ,(alist . ())) (token-handle-create-event! alist))
+    (`(delete . ,(alist . ())) (token-handle-delete-event! alist))))

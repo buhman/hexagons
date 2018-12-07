@@ -65,6 +65,10 @@
        (`(tile . (create . ,alist))
         (broadcast-message msg))
        (`(tile . (delete . ,alist))
+        (broadcast-message msg))
+       (`(token . (create . ,alist))
+        (broadcast-message msg))
+       (`(token . (delete . ,alist))
         (broadcast-message msg))))
     (`(command . ,type)
      (match type
