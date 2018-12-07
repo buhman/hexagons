@@ -72,7 +72,11 @@
 ;; state locals
 
 (define *state* (make-parameter #f)) ; synchronized
-(define *editor* (make-parameter (make-editor 'tile))) ; unsynchronized
+
+(define +default-tile-mode+ '((visible . #t) (pathable . #t)))
+(define *editor* (make-parameter (make-editor
+                                  'tile
+                                  +default-tile-mode+)))
 
 ;; state globals
 ;; - these should probably become parameters as well

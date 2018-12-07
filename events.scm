@@ -22,9 +22,31 @@
       (let ((msg (make-token-move-event (cdr token) cube)))
         (send-server-message! msg)))))
 
+(define (tile-flags->tile-color flags)
+  (match flags
+    ('(pathable visible) +white+)
+    ('(visible pathable) +white+)
+    ('(visible) +blue+)
+    ('(pathable) +orange+)
+    ('() +magenta+)))
+
+(define (alist->flags alist)
+  (foldl
+   (lambda (l i)
+     (if (cdr i)
+       (cons (car i) l)
+       l))
+   '()
+   alist))
+
 (define (event-tile-create! cube)
-  (let* ((tile (tile->list (make-tile cube +white+ #t #t)))
-         (msg (make-tile-create-event tile)))
+  (let* ((tm (editor-tile-mode (*editor*)))
+         (pathable (assoc/cdr 'pathable tm))
+         (visible (assoc/cdr 'visible tm))
+         (color (tile-flags->tile-color (alist->flags tm)))
+         (tile (make-tile cube color pathable visible))
+         (tl (tile->list tile))
+         (msg (make-tile-create-event tl)))
     (send-server-message! msg)))
 
 (define (event-tile-delete! cube)
@@ -41,12 +63,23 @@
          (token (assoc cube tokens)))
     (set! (selector-focus-tile *selector*) (and token cube))))
 
-(define (handle-mode-switch!)
-  (let ((mode (editor-mode (*editor*))))
-    (set! (editor-mode (*editor*))
-      (case mode
-        ((tile) 'token)
-        ((token) 'tile)))))
+(define (toggle-editor-tile-mode! s)
+  (let* ((tm (editor-tile-mode (*editor*)))
+         (value (not (assoc/cdr s tm))))
+    (set! (editor-tile-mode (*editor*)) (alist-update s value tm))))
+
+(define (handle-mode-switch! sym)
+  (case sym
+    ((space)
+     (let ((mode (editor-mode (*editor*))))
+       (set! (editor-mode (*editor*))
+         (case mode
+           ((tile) 'token)
+           ((token) 'tile)))))
+    ; pathable
+    ((p) (toggle-editor-tile-mode! 'pathable))
+    ; visible
+    ((v) (toggle-editor-tile-mode! 'visible))))
 
 (define (handle-mouse-motion! ev)
   (set! *mouse* (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))
@@ -104,9 +137,10 @@
      (set! *mouse* #f))
 
     ((key-down)
-     (case (sdl2:keyboard-event-sym ev)
-       ((space) (handle-mode-switch!))
-       (else (chat-handle-key (sdl2:keyboard-event-sym ev)))))
+     (match (sdl2:keyboard-event-mod ev)
+       ('(ctrl lctrl) (handle-mode-switch! (sdl2:keyboard-event-sym ev)))
+       ('() (chat-handle-key (sdl2:keyboard-event-sym ev)))
+       (_ #f)))
 
     ((key-up))
 

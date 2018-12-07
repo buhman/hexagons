@@ -13,10 +13,12 @@
 ;; unsynchronized: editor state
 
 (define-record-type editor-state
-  (make-editor mode)
+  (make-editor mode tile-mode)
   editor?
   ;; 'tile 'token
-  (mode editor-mode (setter editor-mode)))
+  (mode editor-mode (setter editor-mode))
+  ;; alist of: 'pathable 'visible
+  (tile-mode editor-tile-mode (setter editor-tile-mode)))
 
 ;; tile
 

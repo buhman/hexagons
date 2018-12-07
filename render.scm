@@ -121,7 +121,8 @@
 
     (render-tokens! renderer scale tokens)
 
-    (render-lighting! renderer *grip* tiles)))
+    (when (eq? 'token (editor-mode (*editor*)))
+      (render-lighting! renderer *grip* tiles))))
 
 ;; fps
 
@@ -159,5 +160,10 @@
 ;; editor-state
 
 (define (render-editor-state! renderer)
-  (let* ((state (editor-mode (*editor*))))
-    (render-status-text! renderer (symbol->string state) +white+ 'top-center)))
+  (let* ((state (editor-mode (*editor*)))
+         (flags (alist->flags (editor-tile-mode (*editor*))))
+         (text (if (eq? state 'tile)
+                 (string-join (cons (symbol->string state)
+                                    (map symbol->string flags)))
+                 (symbol->string state))))
+    (render-status-text! renderer text +white+ 'top-center)))
