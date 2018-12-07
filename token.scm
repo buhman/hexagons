@@ -16,7 +16,7 @@
    'token
    #f
    #f
-   (lambda () (values identity #f))
+   (lambda () (cons identity #f))
    #f
    fn))
 
@@ -28,9 +28,10 @@
                (b cube)
                (tiles (state-tiles (*state*)))
                (sg (flood-search a tiles tile-neighbors))
-               (path (reverse (flood-path a b sg)))
+               (rpath (flood-path a b sg))
+               (path (reverse rpath))
                (duration (* +ms-per-node+ (length path))))
-      (values
+      (cons
        (token-path-animator-delta token path)
        duration))))
 

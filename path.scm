@@ -17,10 +17,9 @@
       (() visited))))
 
 (define (flood-path start-node target-node search-graph)
-  (let ((find (assoc target-node search-graph)))
+  (and-let* ((find (assoc target-node search-graph)))
     (match find
-     (#f #f)
-     ((_ . next-node)
-      (if (equal? next-node start-node)
-        (list target-node next-node)
-        (cons target-node (flood-path start-node next-node search-graph)))))))
+      ((_ . next-node)
+       (if (equal? next-node start-node)
+         (list target-node next-node)
+         (cons target-node (flood-path start-node next-node search-graph)))))))

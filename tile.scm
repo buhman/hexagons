@@ -6,7 +6,7 @@
    'tile
    #f
    #f
-   (lambda () (values identity #f))
+   (lambda () (cons identity #f))
    #f
    fn))
 

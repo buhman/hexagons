@@ -21,10 +21,12 @@
     ((animator-delta-fn animator) t)))
 
 (define (animator-init! ticks animator)
-  (let-values (((delta-fn duration) ((animator-init-fn animator))))
-    (set! (animator-delta-fn animator) delta-fn)
-    (set! (animator-duration animator) duration)
-    (set! (animator-epoch animator) ticks)))
+  (and-let* ((l ((animator-init-fn animator))))
+    (match l
+      ((delta-fn . duration)
+       (set! (animator-delta-fn animator) delta-fn)
+       (set! (animator-duration animator) duration)
+       (set! (animator-epoch animator) ticks)))))
 
 (define (animator-end! animator)
   ((animator-end-fn animator)))
@@ -36,8 +38,12 @@
     (cond
      ;; animator is not initialized
      ((not epoch)
-      (animator-init! ticks animator)
-      (animator-update! ticks animator))
+      ;; init is allowed to fail, if the animation is invalid
+      (if (animator-init! ticks animator)
+        (animator-update! ticks animator)
+        (begin
+          (print "invalid animation: " (animator-type animator))
+          #f)))
      ;; animator is static or expired -> discard
      ((or (not duration) (>= delta duration))
       (animator-end! animator)
