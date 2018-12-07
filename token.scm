@@ -50,7 +50,12 @@
       (set! (state-tokens (*state*))
         (->> (state-tokens (*state*))
           (alist-delete (token-cube token))
-          (alist-cons cube new-token))))))
+          (alist-cons cube new-token))))
+
+    ;; move the selector with the token, if its previous focus was this token
+    (let ((s-cube (selector-focus-tile *selector*)))
+      (when (equal? s-cube (token-cube token))
+        (set! (selector-focus-tile *selector*) cube)))))
 
 (define (token-create token)
   (lambda ()
