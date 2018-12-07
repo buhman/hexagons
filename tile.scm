@@ -3,9 +3,11 @@
 
 (define (make-tile-animator fn)
   (make-animator
-   0
-   1
-   identity
+   'tile
+   #f
+   #f
+   (lambda () (values identity #f))
+   #f
    fn))
 
 (define (tile-create tile)

@@ -1,66 +1,58 @@
 ;; animator
 
 (define-record-type animator
-  (make-animator epoch duration delta-fn end-fn)
+  (make-animator type epoch duration init-fn delta-fn end-fn)
   animator?
+  (type animator-type)
   (epoch animator-epoch (setter animator-epoch))
-  (duration animator-duration)
-  (delta-fn animator-delta-fn)
+  (duration animator-duration (setter animator-duration))
+  (init-fn animator-init-fn)
+  (delta-fn animator-delta-fn (setter animator-delta-fn))
   (end-fn animator-end-fn))
+
+;; (init-fn) -> (values delta-fn duration-or-false)
+;; (delta-fn t) -> (void)
+;; (end-fn) -> (void)
 
 (define *animators* '())
 
-(define (token-path-animator path cube)
-  (lambda (t)
-    (let* ((tokens (state-tokens (*state*)))
-           (token (assoc/cdr cube tokens))
-           (new-cube (cube-path-lerp path t))
-           (new-token (make-token new-cube (token-id token) (token-color token))))
-      ;; update token-cube, but do not change alist cube
-      (set! (state-tokens (*state*))
-        (alist-update cube new-token tokens equal?)))))
+(define (animator-delta! duration delta ticks animator)
+  (let ((t (/ delta duration)))
+    ((animator-delta-fn animator) t)))
 
-(define (token-end path cube)
-  (lambda ()
-    (let* ((tokens (state-tokens (*state*)))
-           (token (assoc/cdr cube tokens))
-           (b (last path))
-           (new-token (make-token b (token-id token) (token-color token))))
-      ;; update the token-cube with the final position, and update alist cube
-      (set! (state-tokens (*state*))
-        (->> tokens
-          (alist-delete cube)
-          (alist-cons b new-token))))))
+(define (animator-init! ticks animator)
+  (let-values (((delta-fn duration) ((animator-init-fn animator))))
+    (set! (animator-delta-fn animator) delta-fn)
+    (set! (animator-duration animator) duration)
+    (set! (animator-epoch animator) ticks)))
 
-(define (make-token-path-animator epoch duration path cube)
-  (make-animator
-   epoch
-   duration
-   (token-path-animator path cube)
-   (token-end path cube)))
+(define (animator-end! animator)
+  ((animator-end-fn animator)))
 
 (define (animator-update! ticks animator)
   (let* ((epoch (animator-epoch animator))
          (duration (animator-duration animator))
-         (delta (- ticks epoch))
-         (t (/ delta duration)))
-    (if (>= delta duration)
-      (begin
-        ((animator-end-fn animator))
-        #f)
-      (begin
-        ((animator-delta-fn animator) t)
-        #t))))
+         (delta (and epoch (- ticks epoch))))
+    (cond
+     ;; animator is not initialized
+     ((not epoch)
+      (animator-init! ticks animator)
+      (animator-update! ticks animator))
+     ;; animator is static or expired -> discard
+     ((or (not duration) (>= delta duration))
+      (animator-end! animator)
+      #f)
+     ;; otherwise, do a delta-update -> keep
+     (else
+      (animator-delta! duration delta ticks animator)
+      #t))))
 
 (define (animators-update! ticks animators)
   (match animators
     ((animator . rest)
-     (let ((epoch (animator-epoch animator)))
-       (when (not epoch)
-         (set! (animator-epoch animator) ticks))
-       (if (animator-update! ticks animator)
-         (cons animator rest)
-         rest)))
+     (if (animator-update! ticks animator)
+       (cons animator rest)
+       rest))
     (() '())))
 
 (define (animator-list-update! ticks)

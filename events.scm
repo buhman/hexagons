@@ -13,14 +13,7 @@
   (let ((point (mouse-button-event->point ev)))
     (cube-nearest (point->cube grip point))))
 
-;; server-side handlers
-
-(define (event-token-move! cube)
-  (let* ((tokens (state-tokens (*state*)))
-         (token (assoc (selector-focus-tile *selector*) tokens)))
-    (when token
-      (let ((msg (make-token-move-event (cdr token) cube)))
-        (send-server-message! msg)))))
+;; helpers
 
 (define (tile-flags->tile-color flags)
   (match flags
@@ -38,6 +31,29 @@
        l))
    '()
    alist))
+
+(define (symbol->color cs)
+  (case cs
+    ((cyan) +cyan+)
+    ((magenta) +magenta+)
+    ((green) +green+)))
+
+(define (token-next-color cs)
+  (case cs
+    ((cyan) 'magenta)
+    ((magenta) 'green)
+    ((green) 'cyan)))
+
+;; server-side handlers
+
+(define (event-token-move! cube)
+  (let* ((tokens (state-tokens (*state*)))
+         (token (assoc (selector-focus-tile *selector*) tokens)))
+    (when token
+      (let ((msg (make-token-move-event (cdr token) cube)))
+        (send-server-message! msg)))))
+
+;;
 
 (define (event-tile-create! cube)
   (let* ((tm (editor-tile-mode (*editor*)))
