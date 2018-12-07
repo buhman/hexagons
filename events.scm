@@ -57,7 +57,8 @@
       (send-server-message! (make-tile-delete-event cube)))))
 
 (define (event-token-create! cube)
-  (let* ((token (make-token cube 'generic +cyan+))
+  (let* ((color (symbol->color (editor-token-color (*editor*))))
+         (token (make-token cube 'generic color))
          (tl (token->list token))
          (msg (make-token-create-event tl)))
     (send-server-message! msg)))
@@ -81,6 +82,11 @@
          (value (not (assoc/cdr s tm))))
     (set! (editor-tile-mode (*editor*)) (alist-update s value tm))))
 
+(define (toggle-editor-color!)
+  (let* ((cs (editor-token-color (*editor*)))
+         (new-cs (token-next-color cs)))
+    (set! (editor-token-color (*editor*)) new-cs)))
+
 (define (handle-mode-switch! sym)
   (case sym
     ((space)
@@ -92,8 +98,12 @@
            ((token) 'tile)))))
     ; pathable
     ((p) (toggle-editor-tile-mode! 'pathable))
+    ; pathable alternate ergonomic binding
+    ((f) (toggle-editor-tile-mode! 'pathable))
     ; visible
-    ((v) (toggle-editor-tile-mode! 'visible))))
+    ((v) (toggle-editor-tile-mode! 'visible))
+    ; color
+    ((c) (toggle-editor-color!))))
 
 (define (handle-mouse-motion! ev)
   (set! *mouse* (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))

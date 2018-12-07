@@ -76,7 +76,8 @@
 (define +default-tile-mode+ '((visible . #t) (pathable . #t)))
 (define *editor* (make-parameter (make-editor
                                   'tile
-                                  +default-tile-mode+)))
+                                  +default-tile-mode+
+                                  'cyan)))
 
 ;; state globals
 ;; - these should probably become parameters as well

@@ -33,6 +33,18 @@
          (b (assoc/cdr 'cube alist)))
     (token-move! a b)))
 
+(define (symbol->color cs)
+  (case cs
+    ((cyan) +cyan+)
+    ((magenta) +magenta+)
+    ((green) +green+)))
+
+(define (token-next-color cs)
+  (case cs
+    ((cyan) 'magenta)
+    ((magenta) 'green)
+    ((green) 'cyan)))
+
 (define (make-token-animator fn)
   (make-animator
    0

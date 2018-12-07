@@ -159,11 +159,17 @@
 
 ;; editor-state
 
+(define (render-editor-text state)
+  (case state
+    ((tile)
+     (let ((flags (alist->flags (editor-tile-mode (*editor*)))))
+       (string-join (cons (symbol->string state) (map symbol->string flags)))))
+    ((token) (symbol->string state))
+    ((token-edit)
+     (let ((color (editor-token-color (*editor*))))
+       (string-join (list (symbol->string state) (symbol->string color)))))))
+
 (define (render-editor-state! renderer)
   (let* ((state (editor-mode (*editor*)))
-         (flags (alist->flags (editor-tile-mode (*editor*))))
-         (text (if (eq? state 'tile)
-                 (string-join (cons (symbol->string state)
-                                    (map symbol->string flags)))
-                 (symbol->string state))))
+         (text (render-editor-text state)))
     (render-status-text! renderer text +white+ 'top-center)))
