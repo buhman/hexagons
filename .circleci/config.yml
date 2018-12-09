@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: buhman/chicken:hexagons
+    steps:
+      - checkout
+      - run:
+          name: run tests
+          command: |
+            csi tests/run.scm
