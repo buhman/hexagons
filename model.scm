@@ -87,7 +87,7 @@
          (x (- (car point) (grip-dx grip)))
          (y (- (cdr point) (grip-dy grip)))
          (q (/ (- (* (/ (sqrt 3) 3) x) (* (/ 1 3) y)) scale))
-         (r (/ (* (/ 2 3) y)  scale))
+         (r (/ (* (/ 2 3) y) scale))
          (s (axis-sub q r)))
     (list q r s)))
 
@@ -103,9 +103,9 @@
     (vector q r)))
 
 (define (axial-vector->cube a-vec)
-  (let ((q (vector-ref a-vec 0))
-        (r (vector-ref a-vec 1))
-        (s (axis-sub q r)))
+  (let* ((q (vector-ref a-vec 0))
+         (r (vector-ref a-vec 1))
+         (s (axis-sub q r)))
     (list q r s)))
 
 (define (cube-distance a b)
@@ -167,3 +167,9 @@
          (a (list-ref path fstep))
          (b (list-ref path (add1 fstep))))
     (cube-lerp a b (- step fstep))))
+
+;;
+
+(define (point-rect->axial-vec-range grip a b)
+  (let ((convert (lambda (p) (cube->axial-vector (point->cube grip p)))))
+    (values (convert a) (convert b))))

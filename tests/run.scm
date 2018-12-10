@@ -9,4 +9,8 @@
  "bsp"
  (include "tests/test-bsp.scm"))
 
+(test-group
+ "model"
+ (include "tests/test-model.scm"))
+
 (test-exit)
