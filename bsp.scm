@@ -80,16 +80,26 @@
      (cons point (append (tree->list left)
                          (tree->list right))))))
 
+(define-syntax values-or
+  (syntax-rules ()
+    ((_ a b)
+     (let-values (((a? a1 a2 a3) a)
+                  ((b? b1 b2 b3) b))
+       (if a?
+         (values a? a1 a2 a3)
+         (values b? b1 b2 b3))))))
+
 (define (kd-find k tree target #!optional (visited void))
   (let go ((axis 0)
            (last #f)
            (t tree))
     (match t
-      (#f (values #f last #f #f))
+      (#f (values #f #f last (modulo (sub1 axis) k)))
       (($ kd-tree point left right)
        (visited)
        (cond
-        ((equal? point target) (values #t t last axis))
+        ((equal? point target)
+         (values #t t last axis))
         (else
          (let* ((p (vector-ref point axis))
                 (o (vector-ref target axis))
@@ -97,8 +107,8 @@
            (cond
             ((> p o) (go next-axis t left))
             ((< p o) (go next-axis t right))
-            (else (or (go next-axis t left)
-                      (go next-axis t right)))))))))))
+            (else (values-or (go next-axis t left)
+                             (go next-axis t right)))))))))))
 
 ;; form the set of all nodes and leaves from the children of the target node,
 ;; and recreate that part of the tree.
@@ -118,5 +128,23 @@
           tree)))
       #f)))
 
-;;
-;(define (kd-insert! k tree point))
+;; add the new point as either the left or right child of the leaf node,
+;; depending on which side of the node's splitting plane contains the new node.
+(define (kd-insert! k tree target)
+  (let-values (((found? _ parent last-axis) (kd-find k tree target)))
+    (if (not found?)
+      (let* ((ref (lambda (p) (vector-ref p last-axis)))
+             (p (ref (kd-point parent)))
+             (o (ref target))
+             (leaf (make-kd target #f #f)))
+        (cond
+         ((< o p)
+          (set! (kd-left parent) leaf))
+         ((> o p)
+          (set! (kd-right parent) leaf))
+         ((not (kd-right parent))
+          (set! (kd-right parent) leaf))
+         ((not (kd-left parent))
+          (set! (kd-left parent) leaf)))
+        tree)
+      #f)))
