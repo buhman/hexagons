@@ -103,6 +103,11 @@
          (new-cs (token-next-color cs)))
     (set! (editor-token-color (*editor*)) new-cs)))
 
+(define (debug-t-kd-rebalance!)
+  (let* ((t-kd (state-tile-kd (*state*)))
+         (ps (tree->list t-kd)))
+    (set! (state-tile-kd (*state*)) (make-balanced-kd 2 ps))))
+
 (define (handle-mode-switch! sym)
   (case sym
     ((space)
@@ -119,7 +124,9 @@
     ; visible
     ((v) (toggle-editor-tile-mode! 'visible))
     ; color
-    ((c) (toggle-editor-color!))))
+    ((c) (toggle-editor-color!))
+    ; rebalance
+    ((r) (debug-t-kd-rebalance!))))
 
 (define (handle-mouse-motion! ev)
   (set! *mouse* (cons (sdl2:mouse-motion-event-x ev) (sdl2:mouse-motion-event-y ev)))

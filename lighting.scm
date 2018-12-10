@@ -240,20 +240,10 @@
 
 ;; debug drawing
 
-(define (hue->rgb h)
-  (let ((r (- (abs (- 3 (* h 6))) 1))
-        (g (- 2 (abs (- 2 (* h 6)))))
-        (b (- 2 (abs (- 4 (* h 6))))))
-    (map
-     (lambda (c)
-       (exact/round (* 254 (/ (+ 2 c) 4))))
-     (list r g b))))
-
 (define (render-draw-rays-debug! renderer rays)
   (map
    (lambda (ray ix)
-     (let* ((c (hue->rgb (/ ix (length rays))))
-            (color (C (car c) (cadr c) (caddr c) 128)))
+     (let* ((color (hue->color (/ ix (length rays)) 128)))
        (set! (sdl2:render-draw-color renderer) color))
      (match ray
        (((xa . ya) . (xb . yb))
@@ -263,8 +253,7 @@
 (define (render-draw-ray-quads-debug! renderer quads)
   (map
    (lambda (t ix)
-     (let* ((c (hue->rgb (/ ix (length quads))))
-            (color (C (car c) (cadr c) (caddr c) 128)))
+     (let ((color (hue->color (/ ix (length quads)) 128)))
        (set! (sdl2:render-draw-color renderer) color)
        (render-draw-trapezoid! renderer t)))
    quads (iota (length quads) 0)))
@@ -272,8 +261,7 @@
 (define (render-draw-color-order-debug! renderer)
   (map
    (lambda (f)
-     (let* ((c (hue->rgb (/ f 256)))
-            (color (C (car c) (cadr c) (caddr c))))
+     (let ((color (hue->color (/ f 256))))
        (set! (sdl2:render-draw-color renderer) color)
        (sdl2:render-draw-point! renderer (+ 100 f) 100)))
    (iota 256 0)))

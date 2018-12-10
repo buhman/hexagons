@@ -1,4 +1,5 @@
 (include "geometry.scm")
+(include "render-debug.scm")
 
 ;; render
 
@@ -30,7 +31,7 @@
       ((cx . cy)
        (render-traps! renderer ht cx cy (sdl2:color-mult color +ultragrey+))
        (render-hex! renderer cx cy scale color)
-       (render-cube-text! renderer cx cy cube +white+)))))
+       (render-cube-text! renderer cx cy cube +lightgrey+)))))
 
 (define (select-color base-color selected?)
   (let ((grey (if selected? +lightgrey+ +darkgrey+)))
@@ -129,6 +130,9 @@
     (render-flood-path! renderer scale t-map)
 
     (render-tokens! renderer scale tokens)
+
+    (render-kd-hyperplanes-debug! *renderer* *grip* 3 t-kd)
+    (render-color-order-debug! *renderer* 4)
 
     (when (eq? 'token (editor-mode (*editor*)))
       (render-lighting! renderer *grip* tiles))))
