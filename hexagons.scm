@@ -3,6 +3,7 @@
      srfi-8
      srfi-13
      srfi-18
+     srfi-69
      matchable
      section-combinators
      tcp6
@@ -41,6 +42,7 @@
 (include "tile.scm")
 (include "animator.scm")
 (include "lighting.scm")
+(include "bsp.scm")
 
 ;; constants
 
@@ -167,12 +169,15 @@
 
 (define *debug-state* #f)
 
+(define (make-default-state #!optional (port #f))
+  (make-state (make-hash-table) #f '() port))
+
 (define (game-client)
   (let* ((event-queue (make-mailbox))
          (net-thread (thread-start! (lambda () (network-loop event-queue)))))
     (dynamic-wind
         (lambda ()
-          (set! (*state*) (make-state '() '() #f))
+          (set! (*state*) (make-default-state))
           ;; give us a way to hack at state
           (set! *debug-state* (*state*)))
         (lambda () (event-loop event-queue))

@@ -1,10 +1,12 @@
 ;; synchronized: game state
 
 (define-record-type game-state
-  (make-state tiles tokens port)
+  (make-state tile-map tile-kd tokens port)
   state?
-  ;; alist: '((cube . tile) ...)
-  (tiles state-tiles (setter state-tiles))
+  ;; hash-table: cube -> tile
+  (tile-map state-tile-map (setter state-tile-map))
+  ;; kd-tree: axial/2-vector
+  (tile-kd state-tile-kd (setter state-tile-kd))
   ;; alist: '((cube . token) ...)
   (tokens state-tokens (setter state-tokens))
   ;; PORT or #f
@@ -95,6 +97,17 @@
          (s (axis-sub q r)))
     (list q r s)))
 
+(define (cube->axial-vector cube)
+  (let ((q (cube-q cube))
+        (r (cube-r cube)))
+    (vector q r)))
+
+(define (axial-vector->cube a-vec)
+  (let ((q (vector-ref a-vec 0))
+        (r (vector-ref a-vec 1))
+        (s (axis-sub q r)))
+    (list q r s)))
+
 (define (cube-distance a b)
   (apply max (map (lambda (axis) (abs (- (axis a) (axis b))))
                   +axes+)))
@@ -138,11 +151,11 @@
 
 ;; tile
 
-(define (tile-neighbors cube alist)
+(define (tile-neighbors cube t-map)
   (let ((candidates (map (lambda (dir) (cube-add dir cube)) cube-directions)))
     (filter (lambda (c)
-              (let ((tile (assoc c alist)))
-                (and tile (tile-pathable? (cdr tile)))))
+              (let ((tile (hash-table-ref/default t-map c #f)))
+                (and tile (tile-pathable? tile))))
             candidates)))
 
 ;; path

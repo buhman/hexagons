@@ -66,8 +66,8 @@
     (send-server-message! msg)))
 
 (define (event-tile-delete! cube)
-  (let* ((tiles (state-tiles (*state*)))
-         (tile (alist-ref cube tiles equal?)))
+  (let* ((t-map (state-tile-map (*state*)))
+         (tile (hash-table-ref/default t-map cube #f)))
     ;; try to filter obviously-invalid events
     (when (and tile (equal? (tile-cube tile) cube))
       (send-server-message! (make-tile-delete-event cube)))))

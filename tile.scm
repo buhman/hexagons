@@ -12,16 +12,22 @@
 
 (define (tile-create tile)
   (lambda ()
-    (let ((tiles (state-tiles (*state*)))
-          (cube (tile-cube tile)))
-      (set! (state-tiles (*state*))
-        (alist-update cube tile tiles equal?)))))
+    (let* ((t-map (state-tile-map (*state*)))
+           (t-kd (state-tile-kd (*state*)))
+           (cube (tile-cube tile))
+           (a-vec (cube->axial-vector cube)))
+      ;; kd-insert! could return an entirely new tree
+      (set! (state-tile-kd (*state*)) (kd-insert! 2 t-kd a-vec))
+      (hash-table-set! t-map cube tile))))
 
 (define (tile-delete cube)
   (lambda ()
-    (let ((tiles (state-tiles (*state*))))
-      (set! (state-tiles (*state*))
-        (alist-delete cube tiles equal?)))))
+    (let ((t-map (state-tile-map (*state*)))
+          (t-kd (state-tile-kd (*state*)))
+          (a-vec (cube->axial-vector cube)))
+      ;; kd-remove! could return an empty tree
+      (set! (state-tile-kd (*state*)) (kd-remove! 2 t-kd a-vec))
+      (hash-table-delete! t-map cube))))
 
 (define (tile-handle-create-event! alist)
   (let ((tile (list->tile (assoc/cdr 'tile alist))))

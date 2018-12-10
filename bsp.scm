@@ -126,13 +126,16 @@
          ((equal? (kd-point (kd-right parent)) target)
           (set! (kd-right parent) new-tree)
           tree)))
-      #f)))
+      tree)))
 
 ;; add the new point as either the left or right child of the leaf node,
 ;; depending on which side of the node's splitting plane contains the new node.
 (define (kd-insert! k tree target)
   (let-values (((found? _ parent last-axis) (kd-find k tree target)))
-    (if (not found?)
+    (cond
+     ((not tree)
+      (make-kd target #f #f))
+     ((not found?)
       (let* ((ref (lambda (p) (vector-ref p last-axis)))
              (p (ref (kd-point parent)))
              (o (ref target))
@@ -146,5 +149,5 @@
           (set! (kd-right parent) leaf))
          ((not (kd-left parent))
           (set! (kd-left parent) leaf)))
-        tree)
-      #f)))
+        tree))
+     (else tree))))

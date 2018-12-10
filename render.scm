@@ -42,11 +42,11 @@
          (color (select-color base-color selected?)))
     (render-hex-cube! renderer scale cube color ht)))
 
-(define (render-tiles! renderer scale tiles)
+(define (render-tiles! renderer scale t-map)
   (let-values (((bg fg) (partition (lambda (tile)
                                      (not (equal? (tile-cube tile)
                                                   (selector-hover-tile *selector*))))
-                                   (map cdr tiles)))
+                                   (hash-table-values t-map)))
                ((ht) (hexagon-trapezoids scale)))
     (for-each
      (lambda (tile) (render-tile! renderer scale #f tile ht))
@@ -62,20 +62,20 @@
       (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +purple+ +darkgrey+))
       (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) (cube-line a b))))))
 
-(define (render-flood-path! renderer scale tiles)
+(define (render-flood-path! renderer scale t-map)
   (let* ((a (selector-focus-tile *selector*))
          (b (selector-hover-tile *selector*)))
     (when (and a b (not (equal? a b)))
-      (let* ((node-graph (flood-search a tiles tile-neighbors))
+      (let* ((node-graph (flood-search a t-map tile-neighbors))
              (node-path (flood-path a b node-graph)))
         (when node-path
           (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
           (render-draw-lines! renderer (map (lambda (c) (cube->point *grip* c)) node-path)))))))
 
-(define (render-neighbors! renderer scale tiles)
+(define (render-neighbors! renderer scale t-map)
   (let* ((cube (selector-hover-tile *selector*))
          (ll (map (lambda (n) (list (cube->point *grip* cube) (cube->point *grip* n)))
-                  (tile-neighbors cube tiles))))
+                  (tile-neighbors cube t-map))))
     (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +yellow+ +darkgrey+))
     (for-each
      (lambda (lines) (render-draw-lines! renderer lines))
@@ -111,18 +111,19 @@
   (set! (sdl2:render-draw-blend-mode *renderer*) 'blend)
   (sdl2:render-clear! *renderer*)
 
-  (let ((tiles (state-tiles (*state*)))
+  (let ((t-map (state-tile-map (*state*)))
         (tokens (state-tokens (*state*)))
         (scale (grip-scale *grip*)))
-    (render-tiles! renderer scale tiles)
-    ;(render-neighbors! renderer scale tiles)
+    (render-tiles! renderer scale t-map)
+    ;(render-neighbors! renderer scale t-map)
     (render-linear-path! renderer scale)
-    (render-flood-path! renderer scale tiles)
+    (render-flood-path! renderer scale t-map)
 
     (render-tokens! renderer scale tokens)
 
+    #;
     (when (eq? 'token (editor-mode (*editor*)))
-      (render-lighting! renderer *grip* tiles))))
+      (render-lighting! renderer *grip* t-map))))
 
 ;; fps
 

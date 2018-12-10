@@ -65,6 +65,10 @@
    +tree+
    (make-balanced-kd 2 +points+))
 
+ (test "make-balanced-kd null tree"
+   #f
+   (make-balanced-kd 2 '()))
+
  (test "kd-select-range multiple"
    '(#(5 4) #(2 3) #(4 7))
    (kd-select-range 2 +tree+ #(1 1) #(6 7)))
@@ -92,9 +96,21 @@
    (count-visits
     (kd-select-range 2 (make-balanced-kd 2 +more-points+) #(25 25) #(40 40))))
 
+ (test "kd-select-range null tree"
+   '()
+   (kd-select-range 2 #f #(1 1) #(1 1)))
+
+ (test "kd-select-range no matches"
+   '()
+   (kd-select-range 2 (make-kd #(1 1) #f #f) #(0 0) #(0 0)))
+
  (test "tree->list"
    '(#(7 2) #(5 4) #(2 3) #(4 7) #(9 6) #(8 1))
    (tree->list +tree+))
+
+ (test "tree->list null tree"
+   '()
+   (tree->list #f))
 
  (test "kd-find"
    #t
@@ -147,8 +163,12 @@
    (kd-remove! 2 (bigger-tree) #(4 5)))
 
  (test "kd-remove! missing"
-   #f
+   (bigger-tree)
    (kd-remove! 2 (bigger-tree) #(99 99)))
+
+ (test "kd-remove! null tree"
+   #f
+   (kd-remove! 2 (make-kd #(9 -9) #f #f) #(9 -9)))
 
  (test "kd-insert!"
    (make-kd #(4 5)
@@ -203,4 +223,8 @@
                      (make-kd #(7 6)
                               (make-kd #(6 9) #f #f)
                               (make-kd #(7 7) #f #f))))
-   (kd-insert! 2 (bigger-tree) #(7 7))))
+   (kd-insert! 2 (bigger-tree) #(7 7)))
+
+ (test "kd-insert! null tree"
+   (make-kd #(9 -9) #f #f)
+   (kd-insert! 2 #f #(9 -9))))

@@ -41,7 +41,8 @@
   (print "reconnected")
   (let ((port (assoc/cdr 'port alist)))
     ;; our state is now invalid, reset it while setting port
-    (set! (*state*) (make-state '() '() port))
+    (set! (*state*) (make-default-state port))
+    (set! *debug-state* (*state*))
     ;; immediately request a log replay
     (write '(command log replay) port)))
 
