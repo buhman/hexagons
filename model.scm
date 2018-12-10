@@ -173,3 +173,7 @@
 (define (point-rect->axial-vec-range grip a b)
   (let ((convert (lambda (p) (cube->axial-vector (point->cube grip p)))))
     (values (convert a) (convert b))))
+
+(define (viewport-point-range renderer)
+  (let-values (((x y) (sdl2:renderer-output-size renderer)))
+    (values (cons 0 0) (cons x y))))

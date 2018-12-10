@@ -17,14 +17,12 @@
   (let loop ((tiles tiles))
     (match tiles
       ((tile . rest)
-       (match tile
-         ((cube . tile)
-          (if (not (tile-visible? tile))
-            (let* ((point (cube->point grip cube))
-                   (scale (grip-scale grip))
-                   (points (hexagon-points (car point) (cdr point) scale)))
-              (cons points (loop rest)))
-            (loop rest)))))
+       (if (not (tile-visible? tile))
+         (let* ((point (cube->point grip (tile-cube tile)))
+                (scale (grip-scale grip))
+                (points (hexagon-points (car point) (cdr point) scale)))
+           (cons points (loop rest)))
+         (loop rest)))
       ;; append the viewport to get a closed area
       (() (list (viewport-points renderer))))))
 

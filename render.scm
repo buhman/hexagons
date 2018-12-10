@@ -42,11 +42,11 @@
          (color (select-color base-color selected?)))
     (render-hex-cube! renderer scale cube color ht)))
 
-(define (render-tiles! renderer scale t-map)
-  (let-values (((bg fg) (partition (lambda (tile)
-                                     (not (equal? (tile-cube tile)
-                                                  (selector-hover-tile *selector*))))
-                                   (hash-table-values t-map)))
+(define (tile-hovered? tile)
+  (not (equal? (tile-cube tile) (selector-hover-tile *selector*))))
+
+(define (render-tiles! renderer scale tiles)
+  (let-values (((bg fg) (partition tile-hovered? tiles))
                ((ht) (hexagon-trapezoids scale)))
     (for-each
      (lambda (tile) (render-tile! renderer scale #f tile ht))
@@ -106,24 +106,32 @@
 
 ;; scene
 
+(define (visible-tile-cubes renderer grip t-kd)
+  (let*-values (((a b) (viewport-point-range renderer))
+                ((av bv) (point-rect->axial-vec-range grip a b)))
+    ;; tiles could also be keyed by axial vectors instead; the ideal model is unclear
+    (map axial-vector->cube (kd-select-range 2 t-kd av bv))))
+
 (define (render-scene! renderer)
   (set! (sdl2:render-draw-color *renderer*) +black+)
   (set! (sdl2:render-draw-blend-mode *renderer*) 'blend)
   (sdl2:render-clear! *renderer*)
 
-  (let ((t-map (state-tile-map (*state*)))
-        (tokens (state-tokens (*state*)))
-        (scale (grip-scale *grip*)))
-    (render-tiles! renderer scale t-map)
+  (let* ((t-map (state-tile-map (*state*)))
+         (t-kd (state-tile-kd (*state*)))
+         (tokens (state-tokens (*state*)))
+         (scale (grip-scale *grip*))
+         (cubes (visible-tile-cubes *renderer* *grip* t-kd))
+         (tiles (map (lambda (c) (hash-table-ref t-map c)) cubes)))
+    (render-tiles! renderer scale tiles)
     ;(render-neighbors! renderer scale t-map)
     (render-linear-path! renderer scale)
     (render-flood-path! renderer scale t-map)
 
     (render-tokens! renderer scale tokens)
 
-    #;
     (when (eq? 'token (editor-mode (*editor*)))
-      (render-lighting! renderer *grip* t-map))))
+      (render-lighting! renderer *grip* tiles))))
 
 ;; fps
 
