@@ -13,4 +13,8 @@
  "model"
  (include "tests/test-model.scm"))
 
+(test-group
+ "path"
+ (include "tests/test-path.scm"))
+
 (test-exit)

@@ -1,19 +1,21 @@
-(use matchable)
-
-(define (flood-search start-node graph neighbors)
+(define (flood-search start-node target-node graph neighbors)
   (let loop ((visited (list (cons start-node #f)))
              (frontier (list start-node)))
     (match frontier
       ((this-node . new-frontier)
-       (let* ((unvisited (filter
-                          (lambda (n) (not (assoc n visited)))
-                          (neighbors this-node graph)))
-              (came-from (map
-                          (lambda (n) (cons n this-node))
-                          unvisited)))
-         (loop
-          (append visited came-from)
-          (append new-frontier unvisited))))
+       (cond
+        ((equal? this-node target-node)
+         visited)
+        (else
+         (let* ((unvisited (filter
+                            (lambda (n) (not (assoc n visited)))
+                            (neighbors this-node graph)))
+                (came-from (map
+                            (lambda (n) (cons n this-node))
+                            unvisited)))
+           (loop
+            (append visited came-from)
+            (append new-frontier unvisited))))))
       (() visited))))
 
 (define (flood-path start-node target-node search-graph)

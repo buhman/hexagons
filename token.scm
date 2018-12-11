@@ -27,7 +27,7 @@
     (and-let* ((a (token-cube token))
                (b cube)
                (t-map (state-tile-map (*state*)))
-               (sg (flood-search a t-map tile-neighbors))
+               (sg (flood-search a b t-map tile-neighbors))
                (rpath (flood-path a b sg))
                (path (reverse rpath))
                (duration (* +ms-per-node+ (length path))))

@@ -67,7 +67,7 @@
   (let* ((a (selector-focus-tile *selector*))
          (b (selector-hover-tile *selector*)))
     (when (and a b (not (equal? a b)))
-      (let* ((node-graph (flood-search a t-map tile-neighbors))
+      (let* ((node-graph (flood-search a b t-map tile-neighbors))
              (node-path (flood-path a b node-graph)))
         (when node-path
           (set! (sdl2:render-draw-color renderer) (sdl2:color-mult +green+ +darkgrey+))
