@@ -131,8 +131,8 @@
 
     (render-tokens! renderer scale tokens)
 
-    (render-kd-hyperplanes-debug! *renderer* *grip* 3 t-kd)
-    (render-color-order-debug! *renderer* 4)
+    ;(render-kd-hyperplanes-debug! *renderer* *grip* 3 t-kd)
+    ;(render-color-order-debug! *renderer* 4)
 
     (when (eq? 'token (editor-mode (*editor*)))
       (render-lighting! renderer *grip* tiles))))
