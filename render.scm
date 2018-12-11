@@ -111,7 +111,7 @@
   (let*-values (((a b) (viewport-point-range renderer))
                 ((av bv) (point-rect->axial-vec-range grip a b)))
     ;; tiles could also be keyed by axial vectors instead; the ideal model is unclear
-    (map axial-vector->cube (kd-select-range 2 t-kd av bv))))
+    (map rect-vector->cube (kd-select-range 2 t-kd av bv))))
 
 (define (render-scene! renderer)
   (set! (sdl2:render-draw-color *renderer*) +black+)

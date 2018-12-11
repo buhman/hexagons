@@ -97,14 +97,23 @@
          (s (axis-sub q r)))
     (list q r s)))
 
-(define (cube->axial-vector cube)
-  (let ((q (cube-q cube))
-        (r (cube-r cube)))
-    (vector q r)))
+(define (axial-skew q r)
+  (- q (/ r -2)))
 
-(define (axial-vector->cube a-vec)
-  (let* ((q (vector-ref a-vec 0))
+(define (rect-skew x r)
+  (+ x (/ r -2)))
+
+(define (cube->rect-vector cube)
+  (let* ((q (cube-q cube))
+         (r (cube-r cube))
+         (x (axial-skew q r)))
+    (vector x r)))
+
+(define (rect-vector->cube a-vec)
+  (let* ((x (vector-ref a-vec 0))
          (r (vector-ref a-vec 1))
+         ;; hack?
+         (q (exact/round (rect-skew x r)))
          (s (axis-sub q r)))
     (list q r s)))
 
@@ -171,7 +180,7 @@
 ;;
 
 (define (point-rect->axial-vec-range grip a b)
-  (let ((convert (lambda (p) (cube->axial-vector (point->cube grip p)))))
+  (let ((convert (lambda (p) (cube->rect-vector (point->cube grip p)))))
     (values (convert a) (convert b))))
 
 (define (viewport-point-range renderer)

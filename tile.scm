@@ -15,7 +15,7 @@
     (let* ((t-map (state-tile-map (*state*)))
            (t-kd (state-tile-kd (*state*)))
            (cube (tile-cube tile))
-           (a-vec (cube->axial-vector cube)))
+           (a-vec (cube->rect-vector cube)))
       ;; kd-insert! could return an entirely new tree
       (set! (state-tile-kd (*state*)) (kd-insert! 2 t-kd a-vec))
       (hash-table-set! t-map cube tile))))
@@ -24,7 +24,7 @@
   (lambda ()
     (let ((t-map (state-tile-map (*state*)))
           (t-kd (state-tile-kd (*state*)))
-          (a-vec (cube->axial-vector cube)))
+          (a-vec (cube->rect-vector cube)))
       ;; kd-remove! could return an empty tree
       (set! (state-tile-kd (*state*)) (kd-remove! 2 t-kd a-vec))
       (hash-table-delete! t-map cube))))
