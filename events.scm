@@ -167,11 +167,21 @@
          ((token-edit) (event-token-delete! cube)))))))
 
 (define (handle-mouse-wheel! ev)
-  (let ((new-scale (+ (grip-scale *grip*)
-                      (* 30 (sdl2:mouse-wheel-event-y ev)))))
-    (if (< new-scale 30)
-      #f
-      (set! (grip-scale *grip*) new-scale))))
+  (let* ((nx (car *mouse*))
+         (ny (cdr *mouse*))
+         (ox (grip-dx *grip*))
+         (oy (grip-dy *grip*))
+         (old-scale (grip-scale *grip*))
+         (new-scale (+ (* 30 (sdl2:mouse-wheel-event-y ev)) old-scale))
+         (ratio (/ new-scale old-scale))
+         (translate (lambda (nc oc) (exact/round (+ nc (* ratio (- oc nc))))))
+         (dx (translate nx ox))
+         (dy (translate ny oy)))
+    (cond
+     ((not (< new-scale 30))
+      (set! (grip-scale *grip*) new-scale)
+      (set! (grip-dx *grip*) dx)
+      (set! (grip-dy *grip*) dy)))))
 
 ;; event dispatch
 
