@@ -170,6 +170,10 @@
    #f
    (kd-remove! 2 (make-kd #(9 -9) #f #f) #(9 -9)))
 
+ (test "kd-remove! null parent"
+   (make-kd #(0 4) (make-kd #(-1 4) #f #f) #f)
+   (kd-remove! 2 (make-kd #(0 4) (make-kd #(-1 4) #f (make-kd #(-4 5) #f #f)) #f) #(-4 5)))
+
  (test "kd-insert!"
    (make-kd #(4 5)
             (make-kd #(4 4)

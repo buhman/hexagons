@@ -120,10 +120,10 @@
         (cond
          ((not parent)
           new-tree)
-         ((equal? (kd-point (kd-left parent)) target)
+         ((and (kd-left parent) (equal? (kd-point (kd-left parent)) target))
           (set! (kd-left parent) new-tree)
           tree)
-         ((equal? (kd-point (kd-right parent)) target)
+         ((and (kd-right parent) (equal? (kd-point (kd-right parent)) target))
           (set! (kd-right parent) new-tree)
           tree)))
       tree)))
