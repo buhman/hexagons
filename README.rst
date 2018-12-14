@@ -24,3 +24,61 @@ Start the client and server::
 
   ./hexagons
   ./server
+
+default client bindings
+-----------------------
+
+The client has three modes; current mode is shown in the top-center of the
+screen.
+
+modes and sub-modes
+^^^^^^^^^^^^^^^^^^^
+================= ==============
+cycle mode        ``ctrl-space``
+toggle pathable   ``ctrl-p``
+toggle visible    ``ctrl-v``
+cycle token color ``ctrl-c``
+================= ==============
+
+camera
+^^^^^^
+================= ================
+grip scale        ``mouse wheel``
+grip translate    ``middle mouse``
+================= ================
+
+``tile`` mode
+^^^^^^^^^^^^^
+================= ================
+create tile       ``left mouse``
+delete tile       ``right mouse``
+================= ================
+
+``token-edit`` mode
+^^^^^^^^^^^^^^^^^^^
+================= ================
+create token      ``left mouse``
+delete token      ``right mouse``
+================= ================
+
+``tile`` mode
+^^^^^^^^^^^^^
+================= ================
+select token      ``left mouse``
+move token        ``right mouse``
+================= ================
+
+chat
+^^^^
+================= ===============
+compose message   ``<all keys>``
+send message      ``return``
+================= ===============
+
+roll expressions
+----------------
+
+If `levo-client` is connected, it will respond in chat to roll expressions that
+are prefixed with ``comma``, as in ``,10ld20``.
+
+See `levo <https://github.com/buhman/levo>`_ for more examples.
