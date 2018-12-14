@@ -8,12 +8,16 @@ hexagons
 overview
 --------
 
-hexagons is a networked multiplayer abstract virtual tabletop and semantic tile system.
+hexagons is a networked multiplayer abstract virtual tabletop and semantic tile
+system written in `CHICKEN <https://www.call-cc.org/>`_ scheme.
+
+.. image:: https://ptpb.pw/AIVQt_NHRAbCdhqT2r9qXaJDsBj6.gif
+   :target: https://ptpb.pw/AIVQt_NHRAbCdhqT2r9qXaJDsBj6.gif
 
 usage
 -----
 
-hexagons depends on `CHICKEN <https://www.call-cc.org/>`_ 4.13.0. `notes
+hexagons depends on CHICKEN 4.13.0. `notes
 <https://ptpb.pw/ZjBD/sh>`_ on how to do this in OSX.
 
 Install dependencies and compile the hexagons client and server with::
