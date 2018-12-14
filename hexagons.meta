@@ -1,0 +1,7 @@
+((synopsis "networked multiplayer abstract virtual tabletop and semantic tile system")
+ (author "Zachary Buhman")
+ (license "GPLv3")
+ (depends matchable combinators clojurian
+          sdl2 sdl2-ttf
+          tcp6 mailbox)
+ (test-depends test))

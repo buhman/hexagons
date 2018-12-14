@@ -1,0 +1,3 @@
+(compile -O3 "hexagons.scm")
+(compile -O3 "server.scm")
+(compile -O3 "levo-client.scm")
