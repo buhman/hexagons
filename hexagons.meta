@@ -3,5 +3,6 @@
  (license "GPLv3")
  (depends matchable combinators clojurian
           sdl2 sdl2-ttf
-          tcp6 mailbox)
+          tcp6 mailbox
+          levo)
  (test-depends test))
