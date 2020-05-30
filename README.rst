@@ -11,8 +11,8 @@ overview
 hexagons is a networked multiplayer abstract virtual tabletop and semantic tile
 system written in `CHICKEN <https://www.call-cc.org/>`_ scheme.
 
-.. image:: https://ptpb.pw/AIVQt_NHRAbCdhqT2r9qXaJDsBj6.gif
-   :target: https://ptpb.pw/AIVQt_NHRAbCdhqT2r9qXaJDsBj6.gif
+.. image:: https://ptpb.io/XI-3vs.png
+   :target: https://ptpb.io/W7VzW7.webm
 
 usage
 -----
