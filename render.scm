@@ -1,3 +1,6 @@
+(import sequences)
+(import (only srfi-1 take))
+
 (include "geometry.scm")
 (include "render-debug.scm")
 

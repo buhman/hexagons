@@ -1,14 +1,16 @@
-(use (prefix sdl2 sdl2:)
-     (prefix sdl2-ttf ttf:)
-     srfi-8
-     srfi-13
-     srfi-18
-     srfi-69
-     matchable
-     section-combinators
-     tcp6
-     clojurian-syntax
-     mailbox)
+(import (prefix sdl2 sdl2:)
+        (prefix sdl2-ttf ttf:)
+        srfi-8
+        srfi-13
+        srfi-18
+        srfi-69
+        matchable
+        tcp6
+        (clojurian syntax)
+        mailbox
+        (chicken condition)
+        srfi-1
+        (chicken sort))
 
 ;; aliases
 
@@ -23,6 +25,7 @@
 
 (on-exit sdl2:quit!)
 
+#;
 (current-exception-handler
  (let ((original-handler (current-exception-handler)))
    (lambda (exception)

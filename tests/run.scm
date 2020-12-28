@@ -1,4 +1,4 @@
-(use test)
+(import test)
 
 (define-syntax test-values
   (syntax-rules ()

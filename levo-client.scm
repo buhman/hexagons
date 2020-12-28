@@ -1,7 +1,7 @@
-(use tcp6
-     matchable
-     srfi-18
-     levo)
+(import tcp6
+        matchable
+        srfi-18
+        levo)
 
 (define (chat-message text port)
   (let ((msg `(event chat message (text . ,text))))

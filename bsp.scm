@@ -1,5 +1,4 @@
-(use matchable
-     section-combinators)
+(import matchable)
 
 ;; k-d-tree
 
@@ -49,7 +48,7 @@
     (<= (ref a) (ref point) (ref b))))
 
 (define (point-inside? k point a b)
-  (let ((inside? (right-section point-axis-inside? point a b)))
+  (let ((inside? (lambda (axis) (point-axis-inside? axis point a b))))
     (every inside? (iota k))))
 
 (define (kd-select-range k tree a b #!optional (visited void))

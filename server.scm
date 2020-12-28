@@ -1,6 +1,8 @@
-(use tcp6
-     srfi-18
-     matchable)
+(import tcp6
+        srfi-18
+        matchable
+        srfi-1
+        (chicken condition))
 
 (define +port+ 4242)
 

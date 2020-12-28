@@ -1,0 +1,12 @@
+((author "Zachary Buhman")
+ (synopsis "a networked multiplayer abstract virtual tabletop and semantic tile system")
+ (license "unlicensed")
+ (components (program hexagons))
+ (dependencies matchable
+               clojurian
+               sdl2
+               sdl2-ttf
+               tcp6
+               mailbox
+               sequences ; (partition PRED S)
+               ))

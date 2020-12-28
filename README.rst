@@ -17,8 +17,7 @@ system written in `CHICKEN <https://www.call-cc.org/>`_ scheme.
 usage
 -----
 
-hexagons depends on CHICKEN 4.13.0. `notes
-<https://ptpb.pw/ZjBD/sh>`_ on how to do this in OSX.
+hexagons depends on CHICKEN 5.2.0.
 
 Install dependencies and compile the hexagons client and server with::
 

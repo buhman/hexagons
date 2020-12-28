@@ -4,3 +4,5 @@
 hexagons
 levo-client
 server
+*.install.sh
+*.build.sh
