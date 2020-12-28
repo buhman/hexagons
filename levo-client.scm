@@ -1,6 +1,8 @@
 (import tcp6
         matchable
         srfi-18
+        (only srfi-13 string-join)
+        (only (chicken string) ->string)
         levo)
 
 (define (chat-message text port)
