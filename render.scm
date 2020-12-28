@@ -1,4 +1,4 @@
-(import sequences)
+(import (only sequences partition))
 (import (only srfi-1 take))
 
 (include "geometry.scm")
